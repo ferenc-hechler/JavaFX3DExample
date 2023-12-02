@@ -25,3 +25,12 @@ mvn archetype:generate -DarchetypeGroupId=org.openjfx -DarchetypeArtifactId=java
 cd openjfx-21-sample
 mvn clean javafx:run
 ```
+
+# Video Course 
+
+https://www.youtube.com/watch?v=mbK2xqG2glM&list=PLhs1urmduZ295Ryetga7CNOqDymN_rhB_
+
+## GitHub Repo 
+
+https://github.com/afsalashyana/JavaFX-3D
+
