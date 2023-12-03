@@ -678,11 +678,12 @@ public class Y22Day22Animation {
 			}
 		}
 		world.init();
-		world.output();
+//		world.output();
 		while (world.hasMoves()) {
 			world.nextMove();
-			world.output();
+//			world.output();
 		}
+		world.output();
 		System.out.println("SURFACE="+world.surface+", POS="+world.pos+" DIR="+world.dir);
 		System.out.println("CODE: " + ((world.pos.y+world.cubeSize*(world.surface/world.maxHSurface)+1)*1000 + (world.pos.x+world.cubeSize*(world.surface%world.maxHSurface)+1)*4+world.dir));
 	}

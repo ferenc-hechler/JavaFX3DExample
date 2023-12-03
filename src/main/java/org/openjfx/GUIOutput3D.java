@@ -29,7 +29,9 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 import javafx.stage.Stage;
@@ -95,18 +97,75 @@ public class GUIOutput3D extends Application {
 	 */
 	public SmartGroup createScene(List<DDDObject> dddOs) {
 
+        Color white  = new Color(1.0, 1.0, 1.0, 1.0); 
+        Color red    = new Color(1.0, 0.1, 0.1, 1.0); 
+        Color green  = new Color(0.1, 1.0, 0.1, 1.0); 
+        Color yellow = new Color(1.0, 1.0, 0.1, 1.0); 
+        Color blue   = new Color(0.1, 0.1, 1.0, 1.0); 
+        Color black  = new Color(0.0, 0.0, 0.0, 1.0); 
+        PhongMaterial matRed = new PhongMaterial();
+        matRed.setDiffuseColor(red);
+        PhongMaterial matGreen = new PhongMaterial();
+        matGreen.setDiffuseColor(green);
+        PhongMaterial matYellow = new PhongMaterial();
+        matYellow.setDiffuseColor(yellow);
+        PhongMaterial matBlue = new PhongMaterial();
+        matBlue.setDiffuseColor(blue);
+		
 		SmartGroup result = new SmartGroup();
 		
 		for (DDDObject dddo : dddOs) {
 			float size = (float) (radiusScale * scale * dddo.size);
 			Node child;
 			switch (dddo.type) {
-			case 0:
-			case 1:
-			case 2:
-			case 13:
-				child = new Box(size, size, size);
+			case 0: {
+				Box box = new Box(size, size, size);
+				box.setMaterial(matRed);
+				child = box;
 				break;
+			}
+			case 1: {
+				Box box = new Box(size, size, size);
+				box.setMaterial(matGreen);
+				child = box;
+				break;
+			}
+			case 2: {
+				Box box = new Box(size, size, size);
+				box.setMaterial(matBlue);
+				child = box;
+				break;
+			}
+			case 3: {
+				Box box = new Box(size, size, size);
+				box.setMaterial(matYellow);
+				child = box;
+				break;
+			}
+			case 10: {
+				Sphere sphere = new Sphere(size);
+				sphere.setMaterial(matRed);
+				child = sphere;
+				break;
+			}
+			case 11: {
+				Sphere sphere = new Sphere(size);
+				sphere.setMaterial(matGreen);
+				child = sphere;
+				break;			
+			}
+			case 12: {
+				Sphere sphere = new Sphere(size);
+				sphere.setMaterial(matBlue);
+				child = sphere;
+				break;			
+			}
+			case 13: {
+				Sphere sphere = new Sphere(size);
+				sphere.setMaterial(matRed);
+				child = sphere;
+				break;
+			}
 //			case 1:
 //				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apGreen)";
 //				break;
