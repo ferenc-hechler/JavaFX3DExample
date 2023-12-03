@@ -1,6 +1,8 @@
 package org.openjfx;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -657,15 +659,13 @@ public class Y22Day22Animation {
 			if (output.scale == 1) {
 				output.adjustScale(points);
 			}
-			output.setText("", points);
+			output.addStep("", points);
 		}
 
 	}
 	
 	public static void mainPart2(String inputFile, int cubeSize) {
-		output = GUIOutput3D.open("Day 22 Part I");
-
-		output = GUIOutput3D.open("Day 22 Part II");
+		output = new GUIOutput3D("Day 22 Part I");
 
 		World world = new World(cubeSize);
 		for (InputData data : new InputProcessor(inputFile)) {
@@ -689,13 +689,16 @@ public class Y22Day22Animation {
 
 	
 	
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException, URISyntaxException {
 		System.out.println("--- PART II ---");
 //			mainPart2("exercises/day22/Feri/input-example.txt", 4);
 //			mainPart2("exercises/day22/Feri/input-example2.txt", 3);
 //			mainPart2("exercises/day22/Feri/input-example3.txt", 4);
 //			mainPart2("exercises/day22/Feri/input.txt", 50);        
-			mainPart2("C:\\Users\\feri\\git\\AdvenrOfCode\\AdvenrOfCode2022\\rsrc\\de\\hechler\\patrick\\aoc2022\\d22\\realdata", 50);        
+//			mainPart2("C:\\Users\\feri\\git\\AdvenrOfCode\\AdvenrOfCode2022\\rsrc\\de\\hechler\\patrick\\aoc2022\\d22\\realdata", 50);        
+//			mainPart2("input/aoc22d22.txt", 50);        
+		URL url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22.txt");
+		mainPart2(new File(url.toURI()).toString(), 50);        
 		System.out.println("---------------");    // 
 	}
 	

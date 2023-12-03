@@ -62,28 +62,29 @@ public class GUIOutput3D extends Application {
 		}
 	}
 
+	private String title;
+	
 	private List<List<DDDObject>> dddObjects;
 	private List<String> dddTitles;
-	private int currentText;
+	private int currentStep;
 
-	boolean buffered;
 	double scale;
 	double offsetX;
 	double offsetY;
 	double offsetZ;
 	double radiusScale;
 
-	public GUIOutput3D() {
+	public GUIOutput3D(String title) {
+		this.title = title;
 		this.dddObjects = new ArrayList<>();
 		this.dddTitles = new ArrayList<>();
-		this.currentText = -1;
-		this.buffered = true;
+		this.currentStep = -1;
 		this.scale = 1.0;
 		this.offsetX = 0.0;
 		this.offsetY = 0.0;
 		this.offsetZ = 0.0;
-		this.radiusScale = 1.0;
-		instance = this;
+		this.radiusScale = 2.0;
+		open();
 	}
 
 	/**
@@ -92,39 +93,48 @@ public class GUIOutput3D extends Application {
 	 * @param universe
 	 * @return
 	 */
-	public Object createScene(List<DDDObject> dddOs) {
+	public SmartGroup createScene(List<DDDObject> dddOs) {
 
+		SmartGroup result = new SmartGroup();
+		
 		for (DDDObject dddo : dddOs) {
 			float size = (float) (radiusScale * scale * dddo.size);
-			Object child;
+			Node child;
 			switch (dddo.type) {
 			case 0:
-				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apRed)";
-				break;
 			case 1:
-				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apGreen)";
-				break;
 			case 2:
-				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apBlue)";
-				break;
-			case 3:
-				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apYellow)";
-				break;
-			case 10:
-				child = "new Sphere(size, apRed)";
-				break;
-			case 11:
-				child = "new Sphere(size, apGreen)";
-				break;
-			case 12:
-				child = "new Sphere(size, apBlue)";
-				break;
 			case 13:
-				child = "new Sphere(size, apYellow)";
+				child = new Box(size, size, size);
 				break;
+//			case 1:
+//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apGreen)";
+//				break;
+//			case 2:
+//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apBlue)";
+//				break;
+//			case 3:
+//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apYellow)";
+//				break;
+//			case 10:
+//				child = "new Sphere(size, apRed)";
+//				break;
+//			case 11:
+//				child = "new Sphere(size, apGreen)";
+//				break;
+//			case 12:
+//				child = "new Sphere(size, apBlue)";
+//				break;
+//			case 13:
+//				child = "new Sphere(size, apYellow)";
+//				break;
 			default:
 				throw new RuntimeException("invalid type " + dddo.type);
 			}
+			child.translateXProperty().set(scale*(dddo.x-offsetX));
+			child.translateYProperty().set(scale*(dddo.y-offsetY));
+			child.translateZProperty().set(scale*(dddo.z-offsetZ));
+			result.getChildren().add(child);
 //    	      TransformGroup tg = new TransformGroup();
 //    	      Transform3D transform = new Transform3D();
 //    	      Vector3d vector = new Vector3d( scale*(dddo.x-offsetX), scale*(dddo.y-offsetY), scale*(dddo.z-offsetZ));
@@ -133,7 +143,7 @@ public class GUIOutput3D extends Application {
 //    	      tg.addChild(child);
 //    	      group.addChild(tg);
 		}
-		return null;
+		return result;
 	}
 
 	public void create(String titleText) {
@@ -219,10 +229,10 @@ public class GUIOutput3D extends Application {
 
     	
 	private synchronized void refreshCanvas() {
-		if ((currentText < 0) || (currentText >= dddObjects.size())) {
+		if ((currentStep < 0) || (currentStep >= dddObjects.size())) {
 			return;
 		}
-		List<DDDObject> dddo = dddObjects.get(currentText);
+		List<DDDObject> dddo = dddObjects.get(currentStep);
 		updateScene(dddo);
 ////    		newCanvas.setDoubleBufferEnable(true);
 ////    		newCanvas.startRenderer();
@@ -238,20 +248,16 @@ public class GUIOutput3D extends Application {
 ////    		System.out.println(dddo);
 	}
 
-	private void updateScene(List<GUIOutput3D.DDDObject> dddo) {
+	private void updateScene(List<DDDObject> dddo) {
 		Platform.runLater(()->updateSceneAsync(dddo));
 	}
 
-	private void updateSceneAsync(List<GUIOutput3D.DDDObject> dddo) {
-		Box newBox = new Box(10, 2, 5);
+	private void updateSceneAsync(List<DDDObject> dddo) {
 		
-		SmartGroup group2 = new SmartGroup();
-		group2.getChildren().add(newBox);
-		group2.translateXProperty().set(5);
-		group2.translateYProperty().set(5);
-		group2.translateZProperty().set(0);
-		rootGroup.getChildren().add(group2);
-
+		SmartGroup newScene = createScene(dddo);
+		rootGroup.getChildren().remove(currentScene);
+		rootGroup.getChildren().add(newScene);
+		currentScene = newScene;
 	}
 
 	private void previous() {
@@ -261,13 +267,15 @@ public class GUIOutput3D extends Application {
 	}
 
 	public void setScale(double scale) {
+    	this.scale = scale;
+    	refreshCanvas();
 	}
 
 	public void adjustScale() {
-		if ((currentText < 0) || (currentText >= dddObjects.size())) {
+		if ((currentStep < 0) || (currentStep >= dddObjects.size())) {
 			return;
 		}
-		adjustScale(dddObjects.get(currentText));
+		adjustScale(dddObjects.get(currentStep));
 	}
 
 	public void adjustScale(List<DDDObject> dddOs) {
@@ -293,22 +301,21 @@ public class GUIOutput3D extends Application {
 			maxDiff = 1.0;
 		}
 		this.scale = 2.0 / maxDiff;
-//    	SwingUtilities.invokeLater(() -> refreshCanvas());
+		scale = scale * 20;
+		refreshCanvas();
+//		lbTextID.setText(Integer.toString(currentText)+" "+title);
+
 	}
 
-	public void setText(String title, List<DDDObject> dddO) {
-		if (buffered) {
-			dddObjects.add(new ArrayList<>(dddO));
-			dddTitles.add(title);
-			if (currentText != -1) {
-				return;
-			}
-		}
-		currentText = dddObjects.size();
+	public void addStep(String title, List<DDDObject> dddO) {
 		dddObjects.add(new ArrayList<>(dddO));
 		dddTitles.add(title);
+		if (currentStep != -1) {
+			return;
+		}
+		currentStep = dddObjects.size()-1;
 		refreshCanvas();
-//    	lbTextID.setText(Integer.toString(currentText)+" "+title);
+//		lbTextID.setText(Integer.toString(currentText)+" "+title);
 	}
 
 	private void smaller() {
@@ -352,58 +359,57 @@ public class GUIOutput3D extends Application {
     private final DoubleProperty angleY = new SimpleDoubleProperty(0);
 
     Stage primary;
-    Group rootGroup;
-    SmartGroup group;
-    Scene scene; 
+    SmartGroup rootGroup;
+    SmartGroup currentScene;
+    Scene rootScene;
     
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primary = primaryStage;
 		Box box = new Box(10, 2, 5);
 
-	    
-        group = new SmartGroup();
-        group.getChildren().add(box);
+		currentScene = new SmartGroup();
+		currentScene.getChildren().add(box);
 
-	    rootGroup = new Group();
-	    rootGroup.getChildren().add(group);
+	    rootGroup = new SmartGroup();
+	    rootGroup.getChildren().add(currentScene);
 
         Camera camera = new PerspectiveCamera();
-        scene = new Scene(rootGroup, WIDTH, HEIGHT);
-        scene.setFill(Color.SILVER);
-        scene.setCamera(camera);
+        rootScene = new Scene(rootGroup, WIDTH, HEIGHT);
+        rootScene.setFill(Color.SILVER);
+        rootScene.setCamera(camera);
 
         rootGroup.translateXProperty().set(WIDTH / 2);
         rootGroup.translateYProperty().set(HEIGHT / 2);
         rootGroup.translateZProperty().set(-1500);
 
-        initMouseControl(rootGroup, scene, primaryStage);
+        initMouseControl(rootGroup, rootScene, primaryStage);
 
         primaryStage.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
                 case W:
-                    group.translateZProperty().set(rootGroup.getTranslateZ() + 100);
+                	rootGroup.translateZProperty().set(rootGroup.getTranslateZ() + 100);
                     break;
                 case S:
-                    group.translateZProperty().set(rootGroup.getTranslateZ() - 100);
+                	rootGroup.translateZProperty().set(rootGroup.getTranslateZ() - 100);
                     break;
                 case Q:
-                    group.rotateByX(10);
+                	rootGroup.rotateByX(10);
                     break;
                 case E:
-                    group.rotateByX(-10);
+                	rootGroup.rotateByX(-10);
                     break;
                 case NUMPAD6:
-                    group.rotateByY(10);
+                	rootGroup.rotateByY(10);
                     break;
                 case NUMPAD4:
-                    group.rotateByY(-10);
+                	rootGroup.rotateByY(-10);
                     break;
             }
         });
 
-        primaryStage.setTitle("Genuine Coder");
-        primaryStage.setScene(scene);
+        primaryStage.setTitle(title);
+        primaryStage.setScene(rootScene);
         primaryStage.show();
 	}
 	
@@ -456,48 +462,6 @@ public class GUIOutput3D extends Application {
     }
 
     
-	public static void main2(String[] args) throws Exception {
-		System.out.println("A");
-		new Thread(()->test()).start();
-		System.out.println("B");
-		launch(args);
-		System.out.println("C");
-	}
-	
-	public static GUIOutput3D test()  {
-		System.out.println("TEST");
-		try {
-//			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			// UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		while (instance == null) {
-			System.out.println("WAIT");
-			sleep(50);
-		}
-		System.out.println("FOUND");
-		GUIOutput3D output = instance;
-		List<DDDObject> state = new ArrayList<>();
-		for (int i = 0; i < 10; i++) {
-			state.add(new DDDObject(rand(), rand(), rand(), rand(0.01, 0.1), irand(0, 2)));
-		}
-		Platform.runLater(() -> {
-			output.updateScene(state);
-		});
-		return instance;
-//		for (int t = 0; t < 20; t++) {
-//			ArrayList<DDDObject> nextState = new ArrayList<>();
-//			for (DDDObject dddo : state) {
-//				nextState.add(new DDDObject(dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
-//						dddo.size, dddo.type));
-//			}
-//			output.setText("Test " + t, nextState);
-//			state = nextState;
-//		}
-	}
-
 	public static void sleep(int ms) {
 		try {
 			Thread.sleep(ms);
@@ -506,30 +470,28 @@ public class GUIOutput3D extends Application {
 		}
 	}
 
-	public static synchronized GUIOutput3D open(String string) {
+	private synchronized void open() {
 		instance = null;
 		try {
 			Platform.runLater(()->{
 				Stage prim = new Stage();
-				GUIOutput3D go3d = new GUIOutput3D();
 				try {
-					go3d.start(prim);
+					start(prim);
 				} catch (Exception e) {
 					throw new RuntimeException(e.toString(), e);
 				}
-				instance = go3d; 
+				instance = this; 
 			});
 		}
 		catch (IllegalStateException tkEx) {
 			Platform.startup(()->{
 				Stage prim = new Stage();
-				GUIOutput3D go3d = new GUIOutput3D();
 				try {
-					go3d.start(prim);
+					start(prim);
 				} catch (Exception e) {
 					throw new RuntimeException(e.toString(), e);
 				}
-				instance = go3d; 
+				instance = this; 
 			});
 		}
 		while (instance == null) {
@@ -537,38 +499,16 @@ public class GUIOutput3D extends Application {
 			sleep(50);
 		}
 		System.out.println("FOUND");		
-		return instance;
-	}
-
-	public static synchronized GUIOutput3D startup(String string) {
-		instance = null;
-		Platform.startup(()->{
-			Stage prim = new Stage();
-			GUIOutput3D go3d = new GUIOutput3D();
-			try {
-				go3d.start(prim);
-			} catch (Exception e) {
-				throw new RuntimeException(e.toString(), e);
-			}
-			instance = go3d; 
-		});
-		while (instance == null) {
-			System.out.println("WAIT");
-			sleep(50);
-		}
-		System.out.println("FOUND");		
-		return instance;
 	}
 
 	public static void main(String[] args) throws Exception {
-		GUIOutput3D output = GUIOutput3D.open("title");
+		GUIOutput3D output = new GUIOutput3D("GUIOutput3D Test");
 		List<DDDObject> state = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
 			state.add(new DDDObject(rand(), rand(), rand(), rand(0.01, 0.1), irand(0, 2)));
 		}
-		Platform.runLater(() -> {
-			output.updateScene(state);
-		});
+		output.adjustScale(state);
+		output.addStep("Erste Szene", state);
 //		for (int t = 0; t < 20; t++) {
 //			ArrayList<DDDObject> nextState = new ArrayList<>();
 //			for (DDDObject dddo : state) {
