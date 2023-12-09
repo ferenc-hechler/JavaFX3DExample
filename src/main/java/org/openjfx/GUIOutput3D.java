@@ -16,6 +16,8 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -27,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -170,7 +173,7 @@ public class GUIOutput3D extends Application {
 				break;			
 			}
 			case 13: {
-				child = createSphere(size, matRed);
+				child = createSphere(size, matYellow);
 				break;
 			}
 //			case 1:
@@ -430,21 +433,45 @@ public class GUIOutput3D extends Application {
     Stage primary;
     SmartGroup rootGroup;
     SmartGroup currentScene;
-    Scene rootScene;
+    SubScene rootScene;
     
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primary = primaryStage;
-		Box box = new Box(10, 2, 5);
 
+		primary.setTitle("New Scene");
+		//Create view in Java
+		Label title = new Label("3D Output ");
+		TextField textField = new TextField("Name");
+		Button button = new Button("OK");
+		button.setOnAction(event -> {
+		    //handle button press
+		});
+		HBox buttons = new HBox(title, textField, button);
+		buttons.setSpacing(5);
+		buttons.setPadding(new Insets(5));
+		VBox container2D = new VBox(buttons);
+		container2D.setSpacing(15);
+		container2D.setPadding(new Insets(25));
+		container2D.setAlignment(Pos.CENTER);
+		
+		Group group2D = new Group(container2D);
+		SubScene subScene2D = new SubScene(group2D, WIDTH, 80);
+
+		SmartGroup group3D = new SmartGroup();
+		SubScene subScene3D = new SubScene(group3D, WIDTH, HEIGHT, true, SceneAntialiasing.DISABLED);
+		
+		VBox vbox = new VBox(subScene2D, subScene3D);
+		Group groupALL = new Group(vbox);
+		Scene scene = new Scene(groupALL);
+		
+		Box box = new Box(10, 2, 5);
 		currentScene = new SmartGroup();
 		currentScene.getChildren().add(box);
-
-	    rootGroup = new SmartGroup();
+	    rootGroup = group3D;
 	    rootGroup.getChildren().add(currentScene);
-
         Camera camera = new PerspectiveCamera();
-        rootScene = new Scene(rootGroup, WIDTH, HEIGHT);
+        rootScene = subScene3D;
         rootScene.setFill(Color.SILVER);
         rootScene.setCamera(camera);
 
@@ -452,7 +479,7 @@ public class GUIOutput3D extends Application {
         rootGroup.translateYProperty().set(HEIGHT / 2);
         rootGroup.translateZProperty().set(-1500);
 
-        initMouseControl(rootGroup, rootScene, primaryStage);
+        initMouseControl(rootGroup, scene, primaryStage);
 
         primaryStage.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             switch (event.getCode()) {
@@ -476,10 +503,8 @@ public class GUIOutput3D extends Application {
                     break;
             }
         });
-
-        primaryStage.setTitle(title);
-        primaryStage.setScene(rootScene);
-        primaryStage.show();
+		primary.setScene(scene);
+		primaryStage.show();
 	}
 	
     private void initMouseControl(Group group, Scene scene, Stage stage) {
@@ -565,7 +590,7 @@ public class GUIOutput3D extends Application {
 		}
 		while (instance == null) {
 			System.out.println("WAIT");
-			sleep(50);
+			sleep(500);
 		}
 		System.out.println("FOUND");		
 	}
@@ -575,16 +600,35 @@ public class GUIOutput3D extends Application {
 		output.smaller();
 		
 		List<DDDObject> state = new ArrayList<>();
-		state.add(new DDDObject(-1.0,-1.0, 0.0, 1.0, 0));
-		state.add(new DDDObject(-1.0, 0.0, 0.0, 1.0, 0));
-		state.add(new DDDObject(-1.0, 1.0, 0.0, 1.0, 0));
-		state.add(new DDDObject(-1.0, 2.0, 0.0, 1.0, 0));
-		state.add(new DDDObject(-1.0, 3.0, 0.0, 1.0, 0));
 
-		state.add(new DDDObject( 0.0, 1.0, 0.0, 1.0, 0));
+		// F
+		state.add(new DDDObject(-1.0, -1.0, -1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  0.0, -1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  1.0, -1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  2.0, -1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  3.0, -1.0, 1.0, 0));
+
+		state.add(new DDDObject( 0.0,  1.0, -1.0, 1.0, 0));
 		
-		state.add(new DDDObject( 0.0, 3.0, 0.0, 1.0, 0));
-		state.add(new DDDObject( 1.0, 3.0, 0.0, 1.0, 0));
+		state.add(new DDDObject( 0.0, -1.0, -1.0, 1.0, 0));
+		state.add(new DDDObject( 1.0, -1.0, -1.0, 1.0, 0));
+
+		// E
+		state.add(new DDDObject(-1.0, -1.0,  1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  0.0,  1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  1.0,  1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  2.0,  1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0,  3.0,  1.0, 1.0, 0));
+
+		state.add(new DDDObject( 0.0, -1.0,  1.0, 1.0, 0));
+		state.add(new DDDObject( 1.0, -1.0,  1.0, 1.0, 0));
+		
+		state.add(new DDDObject( 0.0,  1.0,  1.0, 1.0, 0));
+		
+		state.add(new DDDObject( 0.0,  3.0,  1.0, 1.0, 0));
+		state.add(new DDDObject( 1.0,  3.0,  1.0, 1.0, 0));
+
+		
 		output.adjustScale(state);
 		output.addStep("Initial Dummy", state);		
 		
