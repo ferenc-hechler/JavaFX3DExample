@@ -121,7 +121,7 @@ public class Y23Day08Animation3D {
 		}
 	}
 	static Pos3D randomPos3D() {
-		return new Pos3D(rand(-100,100), rand(-100,100), rand(-100,100));
+		return new Pos3D(rand(-1000,1000), rand(-1000,1000), rand(-1000,1000));
 	}
 
 	
@@ -200,7 +200,8 @@ public class Y23Day08Animation3D {
 			for (Node3D node:nodes3D.values()) {
 				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
 				Pos3D sum = new Pos3D(0,0,0);
-				System.out.println("NODE "+node);
+//				System.out.println("NODE "+node);
+				int cntTargets = 0;
 				for (Node3D neighbour:node.neighbours) {
 //					System.out.println("  neighbout "+neighbour);
 					Pos3D vect = neighbour.pos.subtract(node.pos);
@@ -208,11 +209,12 @@ public class Y23Day08Animation3D {
 //					System.out.println("  dist: "+dist);
 					double move = dist-DIST;
 //					System.out.println("  move: "+move);
-					Pos3D mVect = vect.normalize().multiply(move);
+					Pos3D mVect = vect.normalize().multiply(move*0.5);
 //					System.out.println("  mVect: "+mVect);
 					Pos3D target = node.pos.add(mVect);
 //					System.out.println("  target: "+target);
 					sum = sum.add(target);
+					cntTargets++;
 //					System.out.println("  SUM: "+sum);
 				}
 				for (Node3D otherNode:nodes3D.values()) {
@@ -223,12 +225,13 @@ public class Y23Day08Animation3D {
 					double dist = vect.magnitude();
 					if (dist<DIST/2) {
 						double move = dist-DIST/2;
-						Pos3D mVect = vect.normalize().multiply(0.01*move);
+						Pos3D mVect = vect.normalize().multiply(0.5*move);
 						Pos3D target = node.pos.add(mVect);
 						sum = sum.add(target);
+						cntTargets++;
 					}
 				}
-				Pos3D targetPos = sum.multiply(1.0/node.neighbours.size());
+				Pos3D targetPos = sum.multiply(1.0/cntTargets);
 //				System.out.println("  SUM/#: "+targetPos);
 //				Pos3D halfWay = targetPos.subtract(node.pos)
 				node.newPos = targetPos;
@@ -558,8 +561,11 @@ public class Y23Day08Animation3D {
 			}
 		}
 		world.create3DTopology();
-		for (int n=0; n<20; n++) {
+		for (int n=0; n<200; n++) {
 			world.move3DNodes();
+			if ((n%10)==0) {
+				world.show3D();
+			}
 		}
 		world.show3D();
 		int cnt = 0;
