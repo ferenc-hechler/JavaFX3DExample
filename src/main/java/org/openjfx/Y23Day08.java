@@ -13,10 +13,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
-import org.openjfx.Y22Day22Animation.Pos3D;
-import org.openjfx.Y22Day22Animation.Position;
-import org.openjfx.Y22Day22Animation.SurfaceDef;
-
 /**
  * see: https://adventofcode.com/2023/day/08
  */
@@ -227,6 +223,10 @@ public class Y23Day08 {
 			for (Node3D node:nodes3D.values()) {
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 10.0, 1);
 				points.add(point);
+				for (Node3D neighbour:node.neighbours) {
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 1.0, 30);
+					points.add(line);
+				}
 			}
 			if (output.scale == 1) {
 				output.adjustScale(points);
@@ -454,9 +454,9 @@ public class Y23Day08 {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		System.out.println("--- PART I ---");
-//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
+		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example-2.txt");
-		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
+//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
 		System.out.println("---------------");                           
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");

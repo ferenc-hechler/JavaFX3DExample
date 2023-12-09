@@ -10,6 +10,7 @@ import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.Camera;
 import javafx.scene.Group;
@@ -34,9 +35,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
@@ -60,13 +63,25 @@ public class GUIOutput3D extends Application {
 			this.size = size;
 			this.type = type;
 		}
-
+		
 		@Override
 		public String toString() {
 			return "(" + x + "," + y + "," + z + "|" + size + ")";
 		}
 	}
 
+	public static class DDDLineObject extends DDDObject {
+		double x2;
+		double y2;
+		double z2;
+		public DDDLineObject(double x, double y, double z, double x2, double y2, double z2, double size, int type) {
+			super(x, y, z, size, type);
+			this.x2 = x2;
+			this.y2 = y2;
+			this.z2 = z2;
+		}
+	}
+	
 	private String title;
 	
 	private List<List<DDDObject>> dddObjects;
@@ -109,6 +124,40 @@ public class GUIOutput3D extends Application {
 		child = box;
 		return child;
 	}
+	
+	
+
+
+
+    static public Cylinder createCylinder(Point3D lineFrom, Point3D lineTo) {
+        // x axis vector is <1,0,0>
+        // y axis vector is <0,1,0>
+        // z axis vector is <0,0,1>
+        // angle = arccos((P*Q)/(|P|*|Q|))
+        // define a point representing the Y axis
+        Point3D yAxis = new Point3D(0,1,0);
+        // define a point based on the difference of our end point from the start point of our segment
+        Point3D seg = lineTo.subtract(lineFrom);
+        // determine the length of our line or the height of our cylinder object
+        double height = seg.magnitude();
+        // get the midpoint of our line segment
+        Point3D midpoint = lineTo.midpoint(lineFrom);
+        // set up a translate transform to move to our cylinder to the midpoint
+        Translate moveToMidpoint = new Translate(midpoint.getX(), midpoint.getY(), midpoint.getZ());
+        // get the axis about which we want to rotate our object
+        Point3D axisOfRotation = seg.crossProduct(yAxis);
+        // get the angle we want to rotate our cylinder
+        double angle = Math.acos(seg.normalize().dotProduct(yAxis));
+        // create our rotating transform for our cylinder object
+        Rotate rotateAroundCenter = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+        // create our cylinder object representing our line
+        Cylinder line = new Cylinder(1, height);
+        // add our two transfroms to our cylinder object
+        line.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
+        // return our cylinder for use      
+        return line;
+    } // end of the createCylinder method
+
 	
 	
 	/**
@@ -197,6 +246,15 @@ public class GUIOutput3D extends Application {
 //			case 13:
 //				child = "new Sphere(size, apYellow)";
 //				break;
+			case 30: {
+				DDDLineObject line = (DDDLineObject)dddo;
+				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
+				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
+				Cylinder cylinder = createCylinder(from, to);
+				cylinder.setMaterial(matYellow);
+				result.getChildren().add(cylinder);
+				continue;
+			}
 			default:
 				throw new RuntimeException("invalid type " + dddo.type);
 			}
