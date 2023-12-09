@@ -21,6 +21,13 @@ import java.util.stream.Collectors;
  */
 public class Y23Day08Animation3D {
 
+	static final long RAND_SEED = 4;
+	static final double NET_DIST = 5.0;
+	static final long NET_ITERATIONS = 200;
+	static final double NET_SIZE_FACTOR = 1.0;
+	
+	
+	
 	static GUIOutput3D output;
 	/*
 	 *
@@ -90,7 +97,7 @@ public class Y23Day08Animation3D {
 		return df.format(d);
 	}
 	
-	static Random random = new Random();
+	static Random random = new Random(RAND_SEED);
 	
 	public static double rand(double from, double to) {
 		return random.nextDouble(from, to);
@@ -195,7 +202,6 @@ public class Y23Day08Animation3D {
 				addNode3DConnection(node.nodeName, node.childRight);
 			}
 		}
-		double DIST = 50.0;
 		public void move3DNodes() {
 			for (Node3D node:nodes3D.values()) {
 				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
@@ -207,7 +213,7 @@ public class Y23Day08Animation3D {
 					Pos3D vect = neighbour.pos.subtract(node.pos);
 					double dist = vect.magnitude();
 //					System.out.println("  dist: "+dist);
-					double move = dist-DIST;
+					double move = dist-NET_DIST;
 //					System.out.println("  move: "+move);
 					Pos3D mVect = vect.normalize().multiply(move*0.5);
 //					System.out.println("  mVect: "+mVect);
@@ -223,8 +229,8 @@ public class Y23Day08Animation3D {
 					}
 					Pos3D vect = otherNode.pos.subtract(node.pos);
 					double dist = vect.magnitude();
-					if (dist<DIST/2) {
-						double move = dist-DIST/2;
+					if (dist<NET_DIST/2) {
+						double move = dist-NET_DIST/2;
 						Pos3D mVect = vect.normalize().multiply(0.5*move);
 						Pos3D target = node.pos.add(mVect);
 						sum = sum.add(target);
@@ -246,10 +252,10 @@ public class Y23Day08Animation3D {
 			for (Node3D node:nodes3D.values()) {
 				String nodeName = node.name;
 				int type = 3;
-				double size = 50.0;
-				if (currentNodeName().equals(nodeName) || "FTK".equals(nodeName)) {
+				double size = 1.0;
+				if (currentNodeName().equals(nodeName)) {
 					type = 0;
-					size = 100.0;
+					size = 2.0;
 				}
 				else if (nodeName.equals("AAA")) {
 					type = 2;
@@ -257,19 +263,12 @@ public class Y23Day08Animation3D {
 				else if (nodeName.equals("ZZZ")) {
 					type = 1;
 				}
-				if (node.name.equals("XRF")) {
-					System.out.println("XRF: "+node);
-				}
-				if (node.name.equals("FTK")) {
-					System.out.println("FTK: "+node);
-				}
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, size, type);
+				double boxSize = size*NET_SIZE_FACTOR;
+				double lineSize = 0.1*NET_SIZE_FACTOR;
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					if (node.name.equals("XRF")) {
-						System.out.println("  N: "+neighbour);
-					}
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 10, 30);
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
 					points.add(line);
 				}
 			}
@@ -431,7 +430,6 @@ public class Y23Day08Animation3D {
 				addNode3DConnection(node.nodeName, node.childRight);
 			}
 		}
-		double DIST = 50.0;
 		public void move3DNodes() {
 			for (Node3D node:nodes3D.values()) {
 				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
@@ -442,7 +440,7 @@ public class Y23Day08Animation3D {
 					Pos3D vect = neighbour.pos.subtract(node.pos);
 					double dist = vect.magnitude();
 //					System.out.println("  dist: "+dist);
-					double move = dist-DIST;
+					double move = dist-NET_DIST;
 //					System.out.println("  move: "+move);
 					Pos3D mVect = vect.normalize().multiply(move);
 //					System.out.println("  mVect: "+mVect);
@@ -457,8 +455,8 @@ public class Y23Day08Animation3D {
 					}
 					Pos3D vect = otherNode.pos.subtract(node.pos);
 					double dist = vect.magnitude();
-					if (dist<DIST/2) {
-						double move = dist-DIST/2;
+					if (dist<NET_DIST/2) {
+						double move = dist-NET_DIST/2;
 						Pos3D mVect = vect.normalize().multiply(0.01*move);
 						Pos3D target = node.pos.add(mVect);
 						sum = sum.add(target);
@@ -476,13 +474,14 @@ public class Y23Day08Animation3D {
 		}
 		public void show3D() {
 			Set<String> currentNodeNames = currentNodes.stream().map(n->n.nodeName).collect(Collectors.toSet());
-			currentNodeNames.add("FTK");
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
 			for (Node3D node:nodes3D.values()) {
 				String nodeName = node.name;
 				int type = 2;
+				double size = 1.0;
 				if (currentNodeNames.contains(nodeName)) {
 					type = 3;
+					size = 2.0;
 				}
 				else if (nodeName.endsWith("A")) {
 					type = 0;
@@ -490,19 +489,12 @@ public class Y23Day08Animation3D {
 				else if (nodeName.endsWith("Z")) {
 					type = 1;
 				}
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 20.0, type);
+				double boxSize = size*NET_SIZE_FACTOR;
+				double lineSize = 0.3*NET_SIZE_FACTOR;
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
-				if (node.name.equals("XRF")) {
-					System.out.println("XRF: "+node);
-				}
-				if (node.name.equals("FTK")) {
-					System.out.println("FTK: "+node);
-				}
 				for (Node3D neighbour:node.neighbours) {
-					if (node.name.equals("XRF")) {
-						System.out.println("  N: "+neighbour);
-					}
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 3.0, 30);
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
 					points.add(line);
 				}
 			}
@@ -561,11 +553,11 @@ public class Y23Day08Animation3D {
 			}
 		}
 		world.create3DTopology();
-		for (int n=0; n<200; n++) {
+		for (int n=0; n<NET_ITERATIONS; n++) {
 			world.move3DNodes();
-			if ((n%10)==0) {
-				world.show3D();
-			}
+//			if ((n%10)==0) {
+//				world.show3D();
+//			}
 		}
 		world.show3D();
 		int cnt = 0;
@@ -595,7 +587,7 @@ public class Y23Day08Animation3D {
 		}
 		
 		world2.create3DTopology();
-		for (int n=1; n<20; n++) {
+		for (int n=1; n<NET_ITERATIONS; n++) {
 			if (n%5 == 0) {
 				world2.show3D();
 			}

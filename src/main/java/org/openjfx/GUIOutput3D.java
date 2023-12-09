@@ -1,7 +1,9 @@
 package org.openjfx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Timer;
@@ -93,6 +95,7 @@ public class GUIOutput3D extends Application {
 	private List<List<DDDObject>> dddObjects;
 	private List<String> dddTitles;
 	private int currentStep;
+	Map<Integer, Node> nodeIdMap;
 
 	double scale;
 	double offsetX;
@@ -110,6 +113,7 @@ public class GUIOutput3D extends Application {
 		this.offsetY = 0.0;
 		this.offsetZ = 0.0;
 		this.radiusScale = 2.0;
+		this.nodeIdMap = new HashMap<>();
 		open();
 	}
 
@@ -224,8 +228,10 @@ public class GUIOutput3D extends Application {
         matBlue.setSpecularColor(blue);
 		
 		SmartGroup result = new SmartGroup();
-		
+		nodeIdMap.clear();
+		int id = -1;
 		for (DDDObject dddo : dddOs) {
+			id++;
 			float size = (float) (radiusScale * scale * dddo.size);
 			Node child;
 			switch (dddo.type) {
@@ -300,6 +306,7 @@ public class GUIOutput3D extends Application {
 			child.setTranslateY(scale*(dddo.y-offsetY));
 			child.setTranslateZ(scale*(dddo.z-offsetZ));
 			result.getChildren().add(child);
+			nodeIdMap.put(id, child);
 //    	      TransformGroup tg = new TransformGroup();
 //    	      Transform3D transform = new Transform3D();
 //    	      Vector3d vector = new Vector3d( scale*(dddo.x-offsetX), scale*(dddo.y-offsetY), scale*(dddo.z-offsetZ));
@@ -629,8 +636,18 @@ public class GUIOutput3D extends Application {
         	animation();
         });
 
+        Button btBlue = new Button("blue");
+        btBlue.setOnAction(ev -> {
+        	buttonBlue();
+        });
+
+        Button btRed = new Button("red");
+        btRed.setOnAction(ev -> {
+        	buttonRed();
+        });
+
 		lbTextID = new Label("0");
-		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btScaleUp, btScaleDown, btAnimation, lbTextID);
+		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btScaleUp, btScaleDown, btAnimation, btBlue, btRed, lbTextID);
 		buttons.setSpacing(5);
 //		buttons.setPadding(new Insets(5));
 		
@@ -703,7 +720,29 @@ public class GUIOutput3D extends Application {
 		primaryStage.show();
 	}
 	
-    private void initMouseControl(Group group, Scene scene, Stage stage) {
+    private void buttonBlue() {
+        setBoxColors(new Color(0.1, 0.1, 1.0, 1.0));
+	}
+
+    private void buttonRed() {
+        setBoxColors(new Color(1.0, 0.1, 0.1, 1.0));
+	}
+
+    private void setBoxColors(Color col) {
+        PhongMaterial mat = new PhongMaterial();
+        mat.setDiffuseColor(col);
+        mat.setSpecularColor(col);
+    	for (Node node:nodeIdMap.values()) {
+    		if (node instanceof Box) {
+    			Box box = (Box)node;
+    			box.setMaterial(mat);
+    		}
+    	}
+	}
+
+
+
+	private void initMouseControl(Group group, Scene scene, Stage stage) {
         Rotate xRotate;
         Rotate yRotate;
         group.getTransforms().addAll(
