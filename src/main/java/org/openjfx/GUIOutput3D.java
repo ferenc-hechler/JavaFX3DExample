@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.Camera;
@@ -25,6 +30,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
@@ -280,7 +286,7 @@ public class GUIOutput3D extends Application {
 				DDDLineObject line = (DDDLineObject)dddo;
 				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
 				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
-				child = createLineBox(from, to, (float)(radiusScale*scale*size), matYellow);
+				child = createLineBox(from, to, (float)(size), matYellow);
 				result.getChildren().add(child);
 				continue;
 			}
@@ -484,7 +490,7 @@ public class GUIOutput3D extends Application {
 			maxDiff = 1.0;
 		}
 		this.scale = 2.0 / maxDiff;
-		scale = scale * 20;
+		scale = scale * 60;
 		refreshCanvas();
 	}
 
@@ -509,10 +515,31 @@ public class GUIOutput3D extends Application {
 		refreshCanvas();
 	}
 
+	class AnimationTask extends TimerTask {
+		@Override public void run() { asyncAnimation(); }
+	}
+	
 	private synchronized void animation() {
+    	if (timer!= null) {
+    		timer.cancel();
+    		timer= null;
+    		return;
+    	}
+    	timer = new Timer();
+    	timer.scheduleAtFixedRate(new AnimationTask(), 250, 250);
 	}
 
 	private synchronized void asyncAnimation() {
+		if (timer == null) {
+			return;
+		}
+		int page = currentStep + 1;
+		if (page >= dddObjects.size()) {
+			timer.cancel();
+			timer = null;
+			return;
+		}
+		switchPage(page);
 	}
 
 	private static Random random = new Random();
@@ -544,6 +571,9 @@ public class GUIOutput3D extends Application {
     SmartGroup currentScene;
     SubScene rootScene;
     Label lbTextID;
+    Slider slider;
+    Timer timer;
+    TimerTask timerTask;
     
 	@Override
 	public void start(Stage primaryStage) throws Exception {
@@ -558,11 +588,45 @@ public class GUIOutput3D extends Application {
 		btNext.setOnAction(event -> {
 			next();
 		});
+		
+		Button btSmaller = new Button("v");
+        btSmaller.setOnAction(ev -> {
+        	smaller();
+        });
+        
+        Button btBigger = new Button("^");
+        btBigger.setOnAction(ev -> {
+        	bigger();
+        });
+		
+        Button btAdjustScale = new Button("Adjust Scale");
+        btAdjustScale.setOnAction(ev -> {
+        	adjustScale();
+        });
+        
+        Button btAnimation = new Button("Animation");
+        btAnimation.setOnAction(ev -> {
+        	animation();
+        });
+
 		lbTextID = new Label("0");
-		HBox buttons = new HBox(btPrevious, btNext, lbTextID);
+		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btAnimation, lbTextID);
 		buttons.setSpacing(5);
-		buttons.setPadding(new Insets(5));
-		VBox container2D = new VBox(buttons);
+//		buttons.setPadding(new Insets(5));
+		
+        slider = new Slider(0, 10000, 0);
+        slider.setOrientation(Orientation.HORIZONTAL);
+        slider.valueProperty().addListener(new ChangeListener<Number>() {
+            public void changed(ObservableValue<? extends Number> ov,
+                    Number old_val, Number new_val) {
+            	double percent = new_val.doubleValue() * 0.0001;
+            	int page = (int) (percent * (dddObjects.size()-1));
+            	switchPage(page);
+                }
+            });
+        slider.setPrefWidth(WIDTH-50);
+		
+		VBox container2D = new VBox(buttons, slider);
 		container2D.setSpacing(15);
 		container2D.setPadding(new Insets(25));
 		container2D.setAlignment(Pos.CENTER);

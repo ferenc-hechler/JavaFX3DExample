@@ -12,11 +12,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * see: https://adventofcode.com/2023/day/08
  */
-public class Y23Day08 {
+public class Y23Day08Animation3D {
 
 	static GUIOutput3D output;
 	/*
@@ -166,6 +168,9 @@ public class Y23Day08 {
 			nextMovementIdx = (nextMovementIdx+1)%movements.length();
 			return result;
 		}
+		public char peekNextDir() {
+			return movements.charAt(nextMovementIdx);
+		}
 		public void tick() {
 			ticks++;
 			char dir = nextMove();
@@ -235,17 +240,30 @@ public class Y23Day08 {
 		public void show3D() {
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
 			for (Node3D node:nodes3D.values()) {
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 20.0, 1);
+				String nodeName = node.name;
+				int type = 3;
+				double size = 50.0;
+				if (currentNodeName().equals(nodeName)) {
+					type = 0;
+					size = 100.0;
+				}
+				else if (nodeName.equals("AAA")) {
+					type = 2;
+				}
+				else if (nodeName.equals("ZZZ")) {
+					type = 1;
+				}
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, size, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 3.0, 30);
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 10, 30);
 					points.add(line);
 				}
 			}
 			if (output.scale == 1) {
 				output.adjustScale(points);
 			}
-			output.addStep("", points);
+			output.addStep(currentNode.toString()+" "+peekNextDir(), points);
 		}
 		private void addNode3DConnection(String nodeName1, String nodeName2) {
 			Node3D node1 = nodes3D.get(nodeName1);
@@ -300,7 +318,7 @@ public class Y23Day08 {
 				}
 			}
 			System.out.println("]");
-			for (int i=0; i<5; i++) {
+			for (int i=0; i<circleNodeNames.size(); i++) {
 				System.out.println("    "+i+": "+nodes.get(circleNodeNames.get(i)));	
 			}
 			for (int i=circleNodeNames.size()-5; i<circleNodeNames.size(); i++) {
@@ -316,6 +334,7 @@ public class Y23Day08 {
 		List<CircleDetector> circleDetectors;
 		int nextMovementIdx;
 		int ticks;
+		Map<String, Node3D> nodes3D;
 		public World2() {
 			this.nodes = new HashMap<>();
 			this.currentNodes = new ArrayList<>();
@@ -388,6 +407,94 @@ public class Y23Day08 {
 			}
 			return result.toString();
 		}
+		public void create3DTopology() {
+			nodes3D = new HashMap<>();
+			for (Node node:nodes.values()) {
+				Node3D node3D = new Node3D(node.nodeName, randomPos3D());
+				nodes3D.put(node3D.name, node3D);
+			}
+			for (Node node:nodes.values()) {
+				addNode3DConnection(node.nodeName, node.childLeft);
+				addNode3DConnection(node.nodeName, node.childRight);
+			}
+		}
+		double DIST = 50.0;
+		public void move3DNodes() {
+			for (Node3D node:nodes3D.values()) {
+				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
+				Pos3D sum = new Pos3D(0,0,0);
+				System.out.println("NODE "+node);
+				for (Node3D neighbour:node.neighbours) {
+//					System.out.println("  neighbout "+neighbour);
+					Pos3D vect = neighbour.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+//					System.out.println("  dist: "+dist);
+					double move = dist-DIST;
+//					System.out.println("  move: "+move);
+					Pos3D mVect = vect.normalize().multiply(move);
+//					System.out.println("  mVect: "+mVect);
+					Pos3D target = node.pos.add(mVect);
+//					System.out.println("  target: "+target);
+					sum = sum.add(target);
+//					System.out.println("  SUM: "+sum);
+				}
+				for (Node3D otherNode:nodes3D.values()) {
+					if (otherNode == node) {
+						continue;
+					}
+					Pos3D vect = otherNode.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+					if (dist<DIST/2) {
+						double move = dist-DIST/2;
+						Pos3D mVect = vect.normalize().multiply(0.01*move);
+						Pos3D target = node.pos.add(mVect);
+						sum = sum.add(target);
+					}
+				}
+				Pos3D targetPos = sum.multiply(1.0/node.neighbours.size());
+//				System.out.println("  SUM/#: "+targetPos);
+//				Pos3D halfWay = targetPos.subtract(node.pos)
+				node.newPos = targetPos;
+			}
+			System.out.println();
+			for (Node3D node:nodes3D.values()) {
+				node.pos = node.newPos;
+			}
+		}
+		public void show3D() {
+			Set<String> currentNodeNames = currentNodes.stream().map(n->n.nodeName).collect(Collectors.toSet());
+			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
+			for (Node3D node:nodes3D.values()) {
+				String nodeName = node.name;
+				int type = 2;
+				if (currentNodeNames.contains(nodeName)) {
+					type = 3;
+				}
+				else if (nodeName.endsWith("A")) {
+					type = 0;
+				}
+				else if (nodeName.endsWith("Z")) {
+					type = 1;
+				}
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 20.0, type);
+				points.add(point);
+				for (Node3D neighbour:node.neighbours) {
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 3.0, 30);
+					points.add(line);
+				}
+			}
+			if (output.scale == 1) {
+				output.adjustScale(points);
+			}
+			output.addStep("", points);
+		}
+		private void addNode3DConnection(String nodeName1, String nodeName2) {
+			Node3D node1 = nodes3D.get(nodeName1);
+			Node3D node2 = nodes3D.get(nodeName2);
+			node1.addConnection(node2);
+			node2.addConnection(node1);
+		}
+		
 	}
 
 	// https://www.programmieren-ist-einfach.de/Java/F009.html
@@ -431,22 +538,24 @@ public class Y23Day08 {
 			}
 		}
 		world.create3DTopology();
-		world.show3D();
-		for (int n=1; n<=20; n++) {
+		for (int n=0; n<20; n++) {
 			world.move3DNodes();
-			if (n%5 == 0) {
-				world.show3D();
-			}
 		}
 		world.show3D();
+		int cnt = 0;
 		while (!world.currentNodeName().equals("ZZZ")) {
 			world.tick();
+			world.show3D();
+			if (cnt++ >= 200) {
+				break;
+			}
 		}
 		System.out.println("TICKS: "+world.getTicks());
 	}
 	
 	
 	public static void mainPart2(String inputFile) {
+		output = new GUIOutput3D("Day 08 Part II");
 		World2 world2 = new World2();
 		for (InputData data:new InputProcessor(inputFile)) {
 //			System.out.println(data);
@@ -457,10 +566,28 @@ public class Y23Day08 {
 				world2.addNode(data.node);
 			}
 		}
+		
+		world2.create3DTopology();
+		for (int n=1; n<20; n++) {
+			if (n%5 == 0) {
+				world2.show3D();
+			}
+			world2.move3DNodes();
+		}
+		world2.show3D();
+		
 //		System.out.println(world2.getTicks()+" "+world2.peekNextDir());
 //		System.out.println(world2.toString());
+		int cnt = 0;
 		while (!world2.allCirclesDetected()) {
+			cnt++;
 			world2.tick();
+			if (cnt < 20) {
+				world2.show3D();
+			}
+			else {
+				break;
+			}
 //			System.out.println(world2.getTicks()+" "+world2.peekNextDir());
 //			System.out.println(world2.toString());
 		}
