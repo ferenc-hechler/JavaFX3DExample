@@ -235,10 +235,10 @@ public class Y23Day08 {
 		public void show3D() {
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
 			for (Node3D node:nodes3D.values()) {
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 10.0, 1);
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 20.0, 1);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 1.0, 30);
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 3.0, 30);
 					points.add(line);
 				}
 			}
@@ -432,10 +432,13 @@ public class Y23Day08 {
 		}
 		world.create3DTopology();
 		world.show3D();
-		for (int n=1; n<50; n++) {
+		for (int n=1; n<=20; n++) {
 			world.move3DNodes();
-			world.show3D();
+			if (n%5 == 0) {
+				world.show3D();
+			}
 		}
+		world.show3D();
 		while (!world.currentNodeName().equals("ZZZ")) {
 			world.tick();
 		}
