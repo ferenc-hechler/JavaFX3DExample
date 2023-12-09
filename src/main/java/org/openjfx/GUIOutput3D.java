@@ -299,6 +299,28 @@ public class GUIOutput3D extends Application {
 		newWindow.show();
 	}
 
+    private int nextPage = -1;
+
+    private synchronized void switchPage(int page) {
+    	if (nextPage == -1) {
+        	nextPage = page;
+        	Platform.runLater(() -> asyncSwitchPage());
+        	return;
+    	}
+    	nextPage = page;
+    }
+
+    
+    private synchronized void asyncSwitchPage() {
+    	int targetPage = Math.min(dddObjects.size()-1, Math.max(0, nextPage));
+    	if (currentStep != targetPage) {
+    		currentStep = targetPage;
+    		refreshCanvas();
+        	lbTextID.setText(Integer.toString(currentStep)+" "+dddTitles.get(currentStep));
+    	}
+    	nextPage = -1;
+	}
+    
     	
 	private synchronized void refreshCanvas() {
 		if ((currentStep < 0) || (currentStep >= dddObjects.size())) {
@@ -333,9 +355,11 @@ public class GUIOutput3D extends Application {
 	}
 
 	private void previous() {
+		switchPage(currentStep-1);
 	}
 
 	private void next() {
+		switchPage(currentStep+1);
 	}
 
 	public void setScale(double scale) {
@@ -375,8 +399,6 @@ public class GUIOutput3D extends Application {
 		this.scale = 2.0 / maxDiff;
 		scale = scale * 20;
 		refreshCanvas();
-//		lbTextID.setText(Integer.toString(currentText)+" "+title);
-
 	}
 
 	public void addStep(String title, List<DDDObject> dddO) {
@@ -387,7 +409,7 @@ public class GUIOutput3D extends Application {
 		}
 		currentStep = dddObjects.size()-1;
 		refreshCanvas();
-//		lbTextID.setText(Integer.toString(currentText)+" "+title);
+		
 	}
 
 	private void smaller() {
@@ -434,20 +456,23 @@ public class GUIOutput3D extends Application {
     SmartGroup rootGroup;
     SmartGroup currentScene;
     SubScene rootScene;
+    Label lbTextID;
     
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primary = primaryStage;
 
-		primary.setTitle("New Scene");
-		//Create view in Java
-		Label title = new Label("3D Output ");
-		TextField textField = new TextField("Name");
-		Button button = new Button("OK");
-		button.setOnAction(event -> {
-		    //handle button press
+		primary.setTitle("3D Output");
+		Button btPrevious = new Button("<");
+		btPrevious.setOnAction(event -> {
+			previous();
 		});
-		HBox buttons = new HBox(title, textField, button);
+		Button btNext = new Button(">");
+		btNext.setOnAction(event -> {
+			next();
+		});
+		lbTextID = new Label("0");
+		HBox buttons = new HBox(btPrevious, btNext, lbTextID);
 		buttons.setSpacing(5);
 		buttons.setPadding(new Insets(5));
 		VBox container2D = new VBox(buttons);
@@ -640,15 +665,15 @@ public class GUIOutput3D extends Application {
 //		output.adjustScale(state);
 //		output.addStep("Erste Szene", state);
 
-//		for (int t = 0; t < 20; t++) {
-//			ArrayList<DDDObject> nextState = new ArrayList<>();
-//			for (DDDObject dddo : state) {
-//				nextState.add(new DDDObject(dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
-//						dddo.size, dddo.type));
-//			}
-//			output.setText("Test " + t, nextState);
-//			state = nextState;
-//		}
+		for (int t = 0; t < 20; t++) {
+			ArrayList<DDDObject> nextState = new ArrayList<>();
+			for (DDDObject dddo : state) {
+				nextState.add(new DDDObject(dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
+						dddo.size, dddo.type));
+			}
+			output.addStep("Testanimation", state);
+			state = nextState;
+		}
 		
 	}
     
