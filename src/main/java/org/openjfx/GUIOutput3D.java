@@ -494,6 +494,16 @@ public class GUIOutput3D extends Application {
 		refreshCanvas();
 	}
 
+	public void scaleUp() {
+		scale = 1.5*scale;
+		refreshCanvas();
+	}
+
+	public void scaleDown() {
+		scale = scale/1.5;
+		refreshCanvas();
+	}
+
 	public void addStep(String title, List<DDDObject> dddO) {
 		dddObjects.add(new ArrayList<>(dddO));
 		dddTitles.add(title);
@@ -604,13 +614,23 @@ public class GUIOutput3D extends Application {
         	adjustScale();
         });
         
+        Button btScaleUp = new Button("+");
+        btScaleUp.setOnAction(ev -> {
+        	scaleUp();
+        });
+        
+        Button btScaleDown = new Button("-");
+        btScaleDown.setOnAction(ev -> {
+        	scaleDown();
+        });
+        
         Button btAnimation = new Button("Animation");
         btAnimation.setOnAction(ev -> {
         	animation();
         });
 
 		lbTextID = new Label("0");
-		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btAnimation, lbTextID);
+		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btScaleUp, btScaleDown, btAnimation, lbTextID);
 		buttons.setSpacing(5);
 //		buttons.setPadding(new Insets(5));
 		

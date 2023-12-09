@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -128,11 +129,11 @@ public class Y23Day08Animation3D {
 		String name;
 		Pos3D pos;
 		Pos3D newPos;
-		List<Node3D> neighbours;
+		Set<Node3D> neighbours;
 		public Node3D(String name, Pos3D pos) {
 			this.name = name;
 			this.pos = pos;
-			neighbours = new ArrayList<>();
+			neighbours = new LinkedHashSet<>();
 		}
 		@Override public String toString() {
 			return name+"["+pos+"#"+neighbours.size()+"]";
@@ -243,7 +244,7 @@ public class Y23Day08Animation3D {
 				String nodeName = node.name;
 				int type = 3;
 				double size = 50.0;
-				if (currentNodeName().equals(nodeName)) {
+				if (currentNodeName().equals(nodeName) || "FTK".equals(nodeName)) {
 					type = 0;
 					size = 100.0;
 				}
@@ -253,9 +254,18 @@ public class Y23Day08Animation3D {
 				else if (nodeName.equals("ZZZ")) {
 					type = 1;
 				}
+				if (node.name.equals("XRF")) {
+					System.out.println("XRF: "+node);
+				}
+				if (node.name.equals("FTK")) {
+					System.out.println("FTK: "+node);
+				}
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, size, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
+					if (node.name.equals("XRF")) {
+						System.out.println("  N: "+neighbour);
+					}
 					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 10, 30);
 					points.add(line);
 				}
@@ -463,6 +473,7 @@ public class Y23Day08Animation3D {
 		}
 		public void show3D() {
 			Set<String> currentNodeNames = currentNodes.stream().map(n->n.nodeName).collect(Collectors.toSet());
+			currentNodeNames.add("FTK");
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
 			for (Node3D node:nodes3D.values()) {
 				String nodeName = node.name;
@@ -478,7 +489,16 @@ public class Y23Day08Animation3D {
 				}
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, 20.0, type);
 				points.add(point);
+				if (node.name.equals("XRF")) {
+					System.out.println("XRF: "+node);
+				}
+				if (node.name.equals("FTK")) {
+					System.out.println("FTK: "+node);
+				}
 				for (Node3D neighbour:node.neighbours) {
+					if (node.name.equals("XRF")) {
+						System.out.println("  N: "+neighbour);
+					}
 					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, 3.0, 30);
 					points.add(line);
 				}
@@ -544,6 +564,7 @@ public class Y23Day08Animation3D {
 		world.show3D();
 		int cnt = 0;
 		while (!world.currentNodeName().equals("ZZZ")) {
+			System.out.println(cnt+": "+world.currentNode+" "+world.peekNextDir());
 			world.tick();
 			world.show3D();
 			if (cnt++ >= 200) {
