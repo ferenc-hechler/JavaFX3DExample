@@ -89,6 +89,25 @@ public class GUIOutput3D extends Application {
 		open();
 	}
 
+	
+
+	private Node createSphere(float size, PhongMaterial matRed) {
+		Node child;
+		Sphere sphere = new Sphere(0.5*size);
+		sphere.setMaterial(matRed);
+		child = sphere;
+		return child;
+	}
+
+	private Node createBox(float size, PhongMaterial matRed) {
+		Node child;
+		Box box = new Box(size, size, size);
+		box.setMaterial(matRed);
+		child = box;
+		return child;
+	}
+	
+	
 	/**
 	 * from: http://www.java3d.org/position.html
 	 * 
@@ -105,12 +124,16 @@ public class GUIOutput3D extends Application {
         Color black  = new Color(0.0, 0.0, 0.0, 1.0); 
         PhongMaterial matRed = new PhongMaterial();
         matRed.setDiffuseColor(red);
+        matRed.setSpecularColor(red);
         PhongMaterial matGreen = new PhongMaterial();
         matGreen.setDiffuseColor(green);
+        matGreen.setSpecularColor(green);
         PhongMaterial matYellow = new PhongMaterial();
         matYellow.setDiffuseColor(yellow);
+        matYellow.setSpecularColor(yellow);
         PhongMaterial matBlue = new PhongMaterial();
         matBlue.setDiffuseColor(blue);
+        matBlue.setSpecularColor(blue);
 		
 		SmartGroup result = new SmartGroup();
 		
@@ -119,51 +142,35 @@ public class GUIOutput3D extends Application {
 			Node child;
 			switch (dddo.type) {
 			case 0: {
-				Box box = new Box(size, size, size);
-				box.setMaterial(matRed);
-				child = box;
+				child = createBox(size, matRed);
 				break;
 			}
 			case 1: {
-				Box box = new Box(size, size, size);
-				box.setMaterial(matGreen);
-				child = box;
+				child = createBox(size, matGreen);
 				break;
 			}
 			case 2: {
-				Box box = new Box(size, size, size);
-				box.setMaterial(matBlue);
-				child = box;
+				child = createBox(size, matBlue);
 				break;
 			}
 			case 3: {
-				Box box = new Box(size, size, size);
-				box.setMaterial(matYellow);
-				child = box;
+				child = createBox(size, matYellow);
 				break;
 			}
 			case 10: {
-				Sphere sphere = new Sphere(size);
-				sphere.setMaterial(matRed);
-				child = sphere;
+				child = createSphere(size, matRed);
 				break;
 			}
 			case 11: {
-				Sphere sphere = new Sphere(size);
-				sphere.setMaterial(matGreen);
-				child = sphere;
+				child = createSphere(size, matGreen);
 				break;			
 			}
 			case 12: {
-				Sphere sphere = new Sphere(size);
-				sphere.setMaterial(matBlue);
-				child = sphere;
+				child = createSphere(size, matBlue);
 				break;			
 			}
 			case 13: {
-				Sphere sphere = new Sphere(size);
-				sphere.setMaterial(matRed);
-				child = sphere;
+				child = createSphere(size, matRed);
 				break;
 			}
 //			case 1:
@@ -190,9 +197,12 @@ public class GUIOutput3D extends Application {
 			default:
 				throw new RuntimeException("invalid type " + dddo.type);
 			}
-			child.translateXProperty().set(scale*(dddo.x-offsetX));
-			child.translateYProperty().set(scale*(dddo.y-offsetY));
-			child.translateZProperty().set(scale*(dddo.z-offsetZ));
+//			child.translateXProperty().set(scale*(dddo.x-offsetX));
+//			child.translateYProperty().set(scale*(dddo.y-offsetY));
+//			child.translateZProperty().set(scale*(dddo.z-offsetZ));
+			child.setTranslateX(scale*(dddo.x-offsetX));
+			child.setTranslateY(scale*(dddo.y-offsetY));
+			child.setTranslateZ(scale*(dddo.z-offsetZ));
 			result.getChildren().add(child);
 //    	      TransformGroup tg = new TransformGroup();
 //    	      Transform3D transform = new Transform3D();
@@ -562,12 +572,30 @@ public class GUIOutput3D extends Application {
 
 	public static void main(String[] args) throws Exception {
 		GUIOutput3D output = new GUIOutput3D("GUIOutput3D Test");
+		output.smaller();
+		
 		List<DDDObject> state = new ArrayList<>();
-		for (int i = 0; i < 10; i++) {
-			state.add(new DDDObject(rand(), rand(), rand(), rand(0.01, 0.1), irand(0, 2)));
-		}
+		state.add(new DDDObject(-1.0,-1.0, 0.0, 1.0, 0));
+		state.add(new DDDObject(-1.0, 0.0, 0.0, 1.0, 0));
+		state.add(new DDDObject(-1.0, 1.0, 0.0, 1.0, 0));
+		state.add(new DDDObject(-1.0, 2.0, 0.0, 1.0, 0));
+		state.add(new DDDObject(-1.0, 3.0, 0.0, 1.0, 0));
+
+		state.add(new DDDObject( 0.0, 1.0, 0.0, 1.0, 0));
+		
+		state.add(new DDDObject( 0.0, 3.0, 0.0, 1.0, 0));
+		state.add(new DDDObject( 1.0, 3.0, 0.0, 1.0, 0));
 		output.adjustScale(state);
-		output.addStep("Erste Szene", state);
+		output.addStep("Initial Dummy", state);		
+		
+		
+//		state = new ArrayList<>();
+//		for (int i = 0; i < 10; i++) {
+//			state.add(new DDDObject(rand(), rand(), rand(), rand(0.01, 0.1), irand(0, 2)));
+//		}
+//		output.adjustScale(state);
+//		output.addStep("Erste Szene", state);
+
 //		for (int t = 0; t < 20; t++) {
 //			ArrayList<DDDObject> nextState = new ArrayList<>();
 //			for (DDDObject dddo : state) {

@@ -678,12 +678,11 @@ public class Y22Day22Animation {
 			}
 		}
 		world.init();
-//		world.output();
+		world.output();
 		while (world.hasMoves()) {
 			world.nextMove();
-//			world.output();
+			world.output();
 		}
-		world.output();
 		System.out.println("SURFACE="+world.surface+", POS="+world.pos+" DIR="+world.dir);
 		System.out.println("CODE: " + ((world.pos.y+world.cubeSize*(world.surface/world.maxHSurface)+1)*1000 + (world.pos.x+world.cubeSize*(world.surface%world.maxHSurface)+1)*4+world.dir));
 	}
@@ -691,15 +690,22 @@ public class Y22Day22Animation {
 	
 	
 	public static void main(String[] args) throws FileNotFoundException, URISyntaxException {
+		URL url;
 		System.out.println("--- PART II ---");
 //			mainPart2("exercises/day22/Feri/input-example.txt", 4);
 //			mainPart2("exercises/day22/Feri/input-example2.txt", 3);
+		
+		url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22-input-example2.txt");
+		mainPart2(new File(url.toURI()).toString(), 3);
+		
 //			mainPart2("exercises/day22/Feri/input-example3.txt", 4);
 //			mainPart2("exercises/day22/Feri/input.txt", 50);        
 //			mainPart2("C:\\Users\\feri\\git\\AdvenrOfCode\\AdvenrOfCode2022\\rsrc\\de\\hechler\\patrick\\aoc2022\\d22\\realdata", 50);        
-//			mainPart2("input/aoc22d22.txt", 50);        
-		URL url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22.txt");
-		mainPart2(new File(url.toURI()).toString(), 50);        
+//			mainPart2("input/aoc22d22.txt", 50);
+		
+//		url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22-input.txt");
+//		mainPart2(new File(url.toURI()).toString(), 50);
+		
 		System.out.println("---------------");    // 
 	}
 	
