@@ -101,6 +101,25 @@ public class Y23Day08 {
 		@Override public String toString() {
 			return "("+d(x)+","+d(y)+","+d(z)+")";
 		}
+		public Pos3D add(Pos3D other) {
+			return new Pos3D(x+other.x, y+other.y, z+other.z);  
+		}
+		public Pos3D subtract(Pos3D other) {
+			return new Pos3D(x-other.x, y-other.y, z-other.z);  
+		}
+		public Pos3D multiply(double factor) {
+			return new Pos3D(x*factor, y*factor, z*factor);  
+		}
+		public double magnitude() {
+			return Math.sqrt(x*x+y*y+z*z);  
+		}
+		public Pos3D normalize() {
+			double mag = magnitude();
+			if (mag == 0) {
+				return this;
+			}
+			return multiply(1/mag);  
+		}
 	}
 	static Pos3D randomPos3D() {
 		return new Pos3D(rand(-100,100), rand(-100,100), rand(-100,100));
@@ -110,6 +129,7 @@ public class Y23Day08 {
 	static class Node3D {
 		String name;
 		Pos3D pos;
+		Pos3D newPos;
 		List<Node3D> neighbours;
 		public Node3D(String name, Pos3D pos) {
 			this.name = name;
@@ -171,6 +191,35 @@ public class Y23Day08 {
 			for (Node node:nodes.values()) {
 				addNode3DConnection(node.nodeName, node.childLeft);
 				addNode3DConnection(node.nodeName, node.childRight);
+			}
+		}
+		public void move3DNodes() {
+			for (Node3D node:nodes3D.values()) {
+				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
+				Pos3D sum = new Pos3D(0,0,0);
+				System.out.println("NODE "+node);
+				for (Node3D neighbour:node.neighbours) {
+					System.out.println("  neighbout "+neighbour);
+					Pos3D vect = neighbour.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+					System.out.println("  dist: "+dist);
+					double move = dist-500.0;
+					System.out.println("  move: "+move);
+					Pos3D mVect = vect.normalize().multiply(move);
+					System.out.println("  mVect: "+mVect);
+					Pos3D target = node.pos.add(mVect);
+					System.out.println("  target: "+target);
+					sum = sum.add(target);
+					System.out.println("  SUM: "+sum);
+					System.out.println(sum);
+				}
+				Pos3D targetPos = sum.multiply(1.0/node.neighbours.size());
+				System.out.println("  SUM/#: "+targetPos);
+				node.newPos = targetPos;
+			}
+			System.out.println();
+			for (Node3D node:nodes3D.values()) {
+				node.pos = node.newPos;
 			}
 		}
 		public void show3D() {
@@ -369,6 +418,10 @@ public class Y23Day08 {
 		}
 		world.create3DTopology();
 		world.show3D();
+		for (int n=1; n<50; n++) {
+			world.move3DNodes();
+			world.show3D();
+		}
 		while (!world.currentNodeName().equals("ZZZ")) {
 			world.tick();
 		}
@@ -401,9 +454,9 @@ public class Y23Day08 {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		System.out.println("--- PART I ---");
-		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
+//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example-2.txt");
-//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
+		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
 		System.out.println("---------------");                           
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");
