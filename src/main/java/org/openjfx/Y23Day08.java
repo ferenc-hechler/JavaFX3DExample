@@ -189,28 +189,42 @@ public class Y23Day08 {
 				addNode3DConnection(node.nodeName, node.childRight);
 			}
 		}
+		double DIST = 50.0;
 		public void move3DNodes() {
 			for (Node3D node:nodes3D.values()) {
 				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
 				Pos3D sum = new Pos3D(0,0,0);
 				System.out.println("NODE "+node);
 				for (Node3D neighbour:node.neighbours) {
-					System.out.println("  neighbout "+neighbour);
+//					System.out.println("  neighbout "+neighbour);
 					Pos3D vect = neighbour.pos.subtract(node.pos);
 					double dist = vect.magnitude();
-					System.out.println("  dist: "+dist);
-					double move = dist-500.0;
-					System.out.println("  move: "+move);
+//					System.out.println("  dist: "+dist);
+					double move = dist-DIST;
+//					System.out.println("  move: "+move);
 					Pos3D mVect = vect.normalize().multiply(move);
-					System.out.println("  mVect: "+mVect);
+//					System.out.println("  mVect: "+mVect);
 					Pos3D target = node.pos.add(mVect);
-					System.out.println("  target: "+target);
+//					System.out.println("  target: "+target);
 					sum = sum.add(target);
-					System.out.println("  SUM: "+sum);
-					System.out.println(sum);
+//					System.out.println("  SUM: "+sum);
+				}
+				for (Node3D otherNode:nodes3D.values()) {
+					if (otherNode == node) {
+						continue;
+					}
+					Pos3D vect = otherNode.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+					if (dist<DIST/2) {
+						double move = dist-DIST/2;
+						Pos3D mVect = vect.normalize().multiply(0.01*move);
+						Pos3D target = node.pos.add(mVect);
+						sum = sum.add(target);
+					}
 				}
 				Pos3D targetPos = sum.multiply(1.0/node.neighbours.size());
-				System.out.println("  SUM/#: "+targetPos);
+//				System.out.println("  SUM/#: "+targetPos);
+//				Pos3D halfWay = targetPos.subtract(node.pos)
 				node.newPos = targetPos;
 			}
 			System.out.println();
@@ -454,9 +468,9 @@ public class Y23Day08 {
 
 	public static void main(String[] args) throws FileNotFoundException {
 		System.out.println("--- PART I ---");
-		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
+//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example-2.txt");
-//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
+		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
 		System.out.println("---------------");                           
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");
