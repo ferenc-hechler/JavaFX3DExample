@@ -330,10 +330,10 @@ public class Y23Day08Animation3D {
 				}
 			}
 			System.out.println("]");
-			for (int i=0; i<circleNodeNames.size(); i++) {
+			for (int i=0; i<Math.min(5, circleNodeNames.size()); i++) {
 				System.out.println("    "+i+": "+nodes.get(circleNodeNames.get(i)));	
 			}
-			for (int i=circleNodeNames.size()-5; i<circleNodeNames.size(); i++) {
+			for (int i=Math.max(0, circleNodeNames.size()-5); i<circleNodeNames.size(); i++) {
 				System.out.println(i+": "+nodes.get(circleNodeNames.get(i)));	
 			}
 		}
@@ -434,7 +434,8 @@ public class Y23Day08Animation3D {
 			for (Node3D node:nodes3D.values()) {
 				List<Pos3D> neighbourPos = node.neighbours.stream().map(n->n.pos).toList();
 				Pos3D sum = new Pos3D(0,0,0);
-				System.out.println("NODE "+node);
+//				System.out.println("NODE "+node);
+				int cntTargets = 0;
 				for (Node3D neighbour:node.neighbours) {
 //					System.out.println("  neighbout "+neighbour);
 					Pos3D vect = neighbour.pos.subtract(node.pos);
@@ -442,11 +443,12 @@ public class Y23Day08Animation3D {
 //					System.out.println("  dist: "+dist);
 					double move = dist-NET_DIST;
 //					System.out.println("  move: "+move);
-					Pos3D mVect = vect.normalize().multiply(move);
+					Pos3D mVect = vect.normalize().multiply(move*0.5);
 //					System.out.println("  mVect: "+mVect);
 					Pos3D target = node.pos.add(mVect);
 //					System.out.println("  target: "+target);
 					sum = sum.add(target);
+					cntTargets++;
 //					System.out.println("  SUM: "+sum);
 				}
 				for (Node3D otherNode:nodes3D.values()) {
@@ -457,12 +459,13 @@ public class Y23Day08Animation3D {
 					double dist = vect.magnitude();
 					if (dist<NET_DIST/2) {
 						double move = dist-NET_DIST/2;
-						Pos3D mVect = vect.normalize().multiply(0.01*move);
+						Pos3D mVect = vect.normalize().multiply(0.5*move);
 						Pos3D target = node.pos.add(mVect);
 						sum = sum.add(target);
+						cntTargets++;
 					}
 				}
-				Pos3D targetPos = sum.multiply(1.0/node.neighbours.size());
+				Pos3D targetPos = sum.multiply(1.0/cntTargets);
 //				System.out.println("  SUM/#: "+targetPos);
 //				Pos3D halfWay = targetPos.subtract(node.pos)
 				node.newPos = targetPos;
@@ -477,20 +480,20 @@ public class Y23Day08Animation3D {
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
 			for (Node3D node:nodes3D.values()) {
 				String nodeName = node.name;
-				int type = 2;
+				int type = 3;
 				double size = 1.0;
 				if (currentNodeNames.contains(nodeName)) {
-					type = 3;
-					size = 2.0;
+					type = 0;
+					size = 1.5;
 				}
 				else if (nodeName.endsWith("A")) {
-					type = 0;
+					type = 2;
 				}
 				else if (nodeName.endsWith("Z")) {
 					type = 1;
 				}
 				double boxSize = size*NET_SIZE_FACTOR;
-				double lineSize = 0.3*NET_SIZE_FACTOR;
+				double lineSize = 0.1*NET_SIZE_FACTOR;
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
@@ -501,7 +504,7 @@ public class Y23Day08Animation3D {
 			if (output.scale == 1) {
 				output.adjustScale(points);
 			}
-			output.addStep("", points);
+			output.addStep(currentNodes.get(1).toString()+" "+peekNextDir(), points);
 		}
 		private void addNode3DConnection(String nodeName1, String nodeName2) {
 			Node3D node1 = nodes3D.get(nodeName1);
@@ -509,7 +512,6 @@ public class Y23Day08Animation3D {
 			node1.addConnection(node2);
 			node2.addConnection(node1);
 		}
-		
 	}
 
 	// https://www.programmieren-ist-einfach.de/Java/F009.html
@@ -618,11 +620,11 @@ public class Y23Day08Animation3D {
 		System.out.println("--- PART I ---");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example-2.txt");
-		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
+//		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input.txt");               
 		System.out.println("---------------");                           
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");
-//		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input.txt");                
+		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input.txt");                
 		System.out.println("---------------");    //
 	}
 	
