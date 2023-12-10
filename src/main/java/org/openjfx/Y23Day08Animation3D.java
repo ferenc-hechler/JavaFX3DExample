@@ -531,6 +531,9 @@ public class Y23Day08Animation3D {
     
 	// https://www.programmieren-ist-einfach.de/Java/F009.html
     public static long kgV(long a, long b) {
+    	if ((a==0) || (b==0)) {
+    		return 0;
+    	}
         // Die Funktion kgV soll das kleinste gemeinsame Vielfach zweier Zahlen a und b berechnen. Die zwei Zahlen wurden als Argument an die kgV Funktion übergeben.
         // Um das Ergebnis zu speichern, wird in einer Variable gespeichert. Dafür wird die Variable resultat deklariert.
     	long resultat;
