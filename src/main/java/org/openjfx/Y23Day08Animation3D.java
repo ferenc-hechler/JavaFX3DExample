@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 public class Y23Day08Animation3D {
 
 	static final long RAND_SEED = 4;
-	static final double NET_DIST = 5.0;
+	static final double NET_DIST = 8.0;
 	static final long NET_ITERATIONS = 200;
-	static final double NET_SIZE_FACTOR = 1.0;
+	static final double NET_SIZE_FACTOR = 0.7;
 	
 	
 	
@@ -255,7 +255,7 @@ public class Y23Day08Animation3D {
 				double size = 1.0;
 				if (currentNodeName().equals(nodeName)) {
 					type = 0;
-					size = 2.0;
+					size = 1.5;
 				}
 				else if (nodeName.equals("AAA")) {
 					type = 2;
@@ -265,7 +265,7 @@ public class Y23Day08Animation3D {
 				}
 				double boxSize = size*NET_SIZE_FACTOR;
 				double lineSize = 0.1*NET_SIZE_FACTOR;
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, boxSize, type);
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
 					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
@@ -491,7 +491,7 @@ public class Y23Day08Animation3D {
 				}
 				double boxSize = size*NET_SIZE_FACTOR;
 				double lineSize = 0.3*NET_SIZE_FACTOR;
-				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.pos.x, node.pos.y, node.pos.z, boxSize, type);
+				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
 					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
@@ -542,6 +542,7 @@ public class Y23Day08Animation3D {
 	
 	public static void mainPart1(String inputFile) {
 		output = new GUIOutput3D("Day 08 Part I");
+		output.setUseCachedNodes(true);
 		World world = new World();
 		for (InputData data:new InputProcessor(inputFile)) {
 //			System.out.println(data);
@@ -575,6 +576,7 @@ public class Y23Day08Animation3D {
 	
 	public static void mainPart2(String inputFile) {
 		output = new GUIOutput3D("Day 08 Part II");
+		output.setUseCachedNodes(true);
 		World2 world2 = new World2();
 		for (InputData data:new InputProcessor(inputFile)) {
 //			System.out.println(data);
@@ -588,9 +590,6 @@ public class Y23Day08Animation3D {
 		
 		world2.create3DTopology();
 		for (int n=1; n<NET_ITERATIONS; n++) {
-			if (n%5 == 0) {
-				world2.show3D();
-			}
 			world2.move3DNodes();
 		}
 		world2.show3D();
@@ -601,7 +600,7 @@ public class Y23Day08Animation3D {
 		while (!world2.allCirclesDetected()) {
 			cnt++;
 			world2.tick();
-			if (cnt < 20) {
+			if (cnt < 200) {
 				world2.show3D();
 			}
 			else {

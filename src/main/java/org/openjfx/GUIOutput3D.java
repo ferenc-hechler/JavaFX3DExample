@@ -44,6 +44,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.Shape3D;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
@@ -57,6 +58,7 @@ public class GUIOutput3D extends Application {
 	static GUIOutput3D instance = null;
 	
 	public static class DDDObject {
+		String id;
 		double x;
 		double y;
 		double z;
@@ -64,7 +66,10 @@ public class GUIOutput3D extends Application {
 		int type;
 
 		public DDDObject(double x, double y, double z, double size, int type) {
-			super();
+			this(null, x, y, z, size, type);
+		}
+		public DDDObject(String id, double x, double y, double z, double size, int type) {
+			this.id = id;
 			this.x = x;
 			this.y = y;
 			this.z = z;
@@ -74,7 +79,7 @@ public class GUIOutput3D extends Application {
 		
 		@Override
 		public String toString() {
-			return "(" + x + "," + y + "," + z + "|" + size + ")";
+			return id+"(" + x + "," + y + "," + z + "|" + size + ")";
 		}
 	}
 
@@ -83,7 +88,10 @@ public class GUIOutput3D extends Application {
 		double y2;
 		double z2;
 		public DDDLineObject(double x, double y, double z, double x2, double y2, double z2, double size, int type) {
-			super(x, y, z, size, type);
+			this(null, x, y, z, x2, y2, z2, size, type);
+		}
+		public DDDLineObject(String id, double x, double y, double z, double x2, double y2, double z2, double size, int type) {
+			super(id, x, y, z, size, type);
 			this.x2 = x2;
 			this.y2 = y2;
 			this.z2 = z2;
@@ -91,12 +99,15 @@ public class GUIOutput3D extends Application {
 	}
 	
 	private String title;
+	private boolean useCachedNodes;
 	
 	private List<List<DDDObject>> dddObjects;
 	private List<String> dddTitles;
 	private int currentStep;
-	Map<Integer, Node> nodeIdMap;
 
+	static record NodeInfo(DDDObject dddo, Node node) {}
+	Map<String, NodeInfo> nodeInfos;
+	
 	double scale;
 	double offsetX;
 	double offsetY;
@@ -113,11 +124,18 @@ public class GUIOutput3D extends Application {
 		this.offsetY = 0.0;
 		this.offsetZ = 0.0;
 		this.radiusScale = 2.0;
-		this.nodeIdMap = new HashMap<>();
+		this.nodeInfos = new HashMap<>();
+		this.useCachedNodes = false;
 		open();
 	}
 
 	
+	public void setUseCachedNodes(boolean useCachedNodesValue) {
+		useCachedNodes = useCachedNodesValue;
+	}
+	public void clearCache() {
+		nodeInfos.clear();
+	}
 
 	private Node createSphere(float size, PhongMaterial matRed) {
 		Node child;
@@ -228,10 +246,8 @@ public class GUIOutput3D extends Application {
         matBlue.setSpecularColor(blue);
 		
 		SmartGroup result = new SmartGroup();
-		nodeIdMap.clear();
-		int id = -1;
+		nodeInfos.clear();
 		for (DDDObject dddo : dddOs) {
-			id++;
 			float size = (float) (radiusScale * scale * dddo.size);
 			Node child;
 			switch (dddo.type) {
@@ -306,7 +322,7 @@ public class GUIOutput3D extends Application {
 			child.setTranslateY(scale*(dddo.y-offsetY));
 			child.setTranslateZ(scale*(dddo.z-offsetZ));
 			result.getChildren().add(child);
-			nodeIdMap.put(id, child);
+			nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
 //    	      TransformGroup tg = new TransformGroup();
 //    	      Transform3D transform = new Transform3D();
 //    	      Vector3d vector = new Vector3d( scale*(dddo.x-offsetX), scale*(dddo.y-offsetY), scale*(dddo.z-offsetZ));
@@ -316,6 +332,84 @@ public class GUIOutput3D extends Application {
 //    	      group.addChild(tg);
 		}
 		return result;
+	}
+
+	public void updateSceneColors(List<DDDObject> dddOs) {
+
+        Color white  = new Color(1.0, 1.0, 1.0, 1.0); 
+        Color red    = new Color(1.0, 0.1, 0.1, 1.0); 
+        Color green  = new Color(0.1, 1.0, 0.1, 1.0); 
+        Color yellow = new Color(1.0, 1.0, 0.1, 1.0); 
+        Color blue   = new Color(0.1, 0.1, 1.0, 1.0); 
+        Color black  = new Color(0.0, 0.0, 0.0, 1.0); 
+        PhongMaterial matRed = new PhongMaterial();
+        matRed.setDiffuseColor(red);
+        matRed.setSpecularColor(red);
+        PhongMaterial matGreen = new PhongMaterial();
+        matGreen.setDiffuseColor(green);
+        matGreen.setSpecularColor(green);
+        PhongMaterial matYellow = new PhongMaterial();
+        matYellow.setDiffuseColor(yellow);
+        matYellow.setSpecularColor(yellow);
+        PhongMaterial matBlue = new PhongMaterial();
+        matBlue.setDiffuseColor(blue);
+        matBlue.setSpecularColor(blue);
+		
+		for (DDDObject dddo : dddOs) {
+			if (dddo.id == null) {
+				continue;
+			}
+			NodeInfo nodeInfo = nodeInfos.get(dddo.id);
+			Node child = nodeInfo.node;
+			float size = (float) (radiusScale * scale * dddo.size);
+			switch (dddo.type) {
+			case 0: {
+				setColor(child, matRed);
+				break;
+			}
+			case 1: {
+				setColor(child, matGreen);
+				break;
+			}
+			case 2: {
+				setColor(child, matBlue);
+				break;
+			}
+			case 3: {
+				setColor(child, matYellow);
+				break;
+			}
+			case 10: {
+				setColor(child, matRed);
+				break;
+			}
+			case 11: {
+				setColor(child, matGreen);
+				break;			
+			}
+			case 12: {
+				setColor(child, matBlue);
+				break;			
+			}
+			case 13: {
+				setColor(child, matYellow);
+				break;
+			}
+			case 30: {
+				setColor(child, matYellow);
+				continue;
+			}
+			default:
+				throw new RuntimeException("invalid type " + dddo.type);
+			}
+		}
+	}
+
+	
+	private void setColor(Node node, PhongMaterial mat) {
+		if (node instanceof Shape3D) {
+			((Shape3D) node).setMaterial(mat);
+		}
 	}
 
 	public void create(String titleText) {
@@ -447,7 +541,10 @@ public class GUIOutput3D extends Application {
 	}
 
 	private void updateSceneAsync(List<DDDObject> dddo) {
-		
+		if (useCachedNodes && !nodeInfos.isEmpty()) {
+			updateSceneColors(dddo);
+			return;
+		}
 		SmartGroup newScene = createScene(dddo);
 		rootGroup.getChildren().remove(currentScene);
 		rootGroup.getChildren().add(newScene);
@@ -497,7 +594,7 @@ public class GUIOutput3D extends Application {
 			maxDiff = 1.0;
 		}
 		this.scale = 2.0 / maxDiff;
-		scale = scale * 60;
+		scale = scale * 120;
 		refreshCanvas();
 	}
 
@@ -608,26 +705,31 @@ public class GUIOutput3D extends Application {
 		
 		Button btSmaller = new Button("v");
         btSmaller.setOnAction(ev -> {
+        	clearCache();
         	smaller();
         });
         
         Button btBigger = new Button("^");
         btBigger.setOnAction(ev -> {
+        	clearCache();
         	bigger();
         });
 		
         Button btAdjustScale = new Button("Adjust Scale");
         btAdjustScale.setOnAction(ev -> {
+        	clearCache();
         	adjustScale();
         });
         
         Button btScaleUp = new Button("+");
         btScaleUp.setOnAction(ev -> {
+        	clearCache();
         	scaleUp();
         });
         
         Button btScaleDown = new Button("-");
         btScaleDown.setOnAction(ev -> {
+        	clearCache();
         	scaleDown();
         });
         
@@ -721,21 +823,20 @@ public class GUIOutput3D extends Application {
 	}
 	
     private void buttonBlue() {
-        setBoxColors(new Color(0.1, 0.1, 1.0, 1.0));
+    	setNodeColors(new Color(0.1, 0.1, 1.0, 1.0));
 	}
 
     private void buttonRed() {
-        setBoxColors(new Color(1.0, 0.1, 0.1, 1.0));
+    	setNodeColors(new Color(1.0, 0.1, 0.1, 1.0));
 	}
 
-    private void setBoxColors(Color col) {
+    private void setNodeColors(Color col) {
         PhongMaterial mat = new PhongMaterial();
         mat.setDiffuseColor(col);
         mat.setSpecularColor(col);
-    	for (Node node:nodeIdMap.values()) {
-    		if (node instanceof Box) {
-    			Box box = (Box)node;
-    			box.setMaterial(mat);
+    	for (NodeInfo nodeInfo:nodeInfos.values()) {
+    		if (nodeInfo.node instanceof Shape3D) {
+    			((Shape3D)nodeInfo.node).setMaterial(mat);
     		}
     	}
 	}
