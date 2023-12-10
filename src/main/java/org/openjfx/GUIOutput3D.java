@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -69,7 +70,7 @@ public class GUIOutput3D extends Application {
 			this(null, x, y, z, size, type);
 		}
 		public DDDObject(String id, double x, double y, double z, double size, int type) {
-			this.id = id;
+			this.id = id!=null ? id : UUID.randomUUID().toString();
 			this.x = x;
 			this.y = y;
 			this.z = z;
@@ -310,6 +311,7 @@ public class GUIOutput3D extends Application {
 				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
 				child = createLineBox(from, to, (float)(size), matYellow);
 				result.getChildren().add(child);
+				nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
 				continue;
 			}
 			default:
@@ -360,23 +362,30 @@ public class GUIOutput3D extends Application {
 				continue;
 			}
 			NodeInfo nodeInfo = nodeInfos.get(dddo.id);
+			if (nodeInfo == null) {
+				System.out.println("ID: "+dddo.id);
+			}
 			Node child = nodeInfo.node;
 			float size = (float) (radiusScale * scale * dddo.size);
 			switch (dddo.type) {
 			case 0: {
 				setColor(child, matRed);
+				setBoxSize(child, size);
 				break;
 			}
 			case 1: {
 				setColor(child, matGreen);
+				setBoxSize(child, size);
 				break;
 			}
 			case 2: {
 				setColor(child, matBlue);
+				setBoxSize(child, size);
 				break;
 			}
 			case 3: {
 				setColor(child, matYellow);
+				setBoxSize(child, size);
 				break;
 			}
 			case 10: {
@@ -402,10 +411,22 @@ public class GUIOutput3D extends Application {
 			default:
 				throw new RuntimeException("invalid type " + dddo.type);
 			}
+			child.setTranslateX(scale*(dddo.x-offsetX));
+			child.setTranslateY(scale*(dddo.y-offsetY));
+			child.setTranslateZ(scale*(dddo.z-offsetZ));	
+			
 		}
 	}
 
 	
+	private void setBoxSize(Node child, float size) {
+		Box box = (Box) child;
+		box.setDepth(size);
+		box.setWidth(size);
+		box.setHeight(size);
+	}
+
+
 	private void setColor(Node node, PhongMaterial mat) {
 		if (node instanceof Shape3D) {
 			((Shape3D) node).setMaterial(mat);
@@ -594,7 +615,7 @@ public class GUIOutput3D extends Application {
 			maxDiff = 1.0;
 		}
 		this.scale = 2.0 / maxDiff;
-		scale = scale * 120;
+		scale = scale * 60;
 		refreshCanvas();
 	}
 
@@ -933,6 +954,7 @@ public class GUIOutput3D extends Application {
 
 	public static void main(String[] args) throws Exception {
 		GUIOutput3D output = new GUIOutput3D("GUIOutput3D Test");
+		output.setUseCachedNodes(true);
 		output.smaller();
 		
 		List<DDDObject> state = new ArrayList<>();
@@ -978,9 +1000,11 @@ public class GUIOutput3D extends Application {
 
 		for (int t = 0; t < 20; t++) {
 			ArrayList<DDDObject> nextState = new ArrayList<>();
+			int i=0;
 			for (DDDObject dddo : state) {
-				nextState.add(new DDDObject(dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
-						dddo.size, dddo.type));
+				i++;
+				nextState.add(new DDDObject(dddo.id, dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
+						dddo.size + rand()*0.1 , ((i/3)%4)));
 			}
 			output.addStep("Testanimation", state);
 			state = nextState;
