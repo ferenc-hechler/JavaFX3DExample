@@ -305,11 +305,15 @@ public class GUIOutput3D extends Application {
 //			case 13:
 //				child = "new Sphere(size, apYellow)";
 //				break;
-			case 30: {
+			case 30: 
+			case 31: 
+			case 32: 
+			case 33: {
+				PhongMaterial mat = dddo.type == 30 ? matRed : (dddo.type == 31 ? matGreen : (dddo.type == 32 ? matBlue : matYellow));
 				DDDLineObject line = (DDDLineObject)dddo;
 				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
 				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
-				child = createLineBox(from, to, (float)(size), matYellow);
+				child = createLineBox(from, to, (float)(size), mat);
 				result.getChildren().add(child);
 				nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
 				continue;
@@ -390,22 +394,34 @@ public class GUIOutput3D extends Application {
 			}
 			case 10: {
 				setColor(child, matRed);
+				setSphereSize(child, size);
 				break;
 			}
 			case 11: {
 				setColor(child, matGreen);
+				setSphereSize(child, size);
 				break;			
 			}
 			case 12: {
 				setColor(child, matBlue);
+				setSphereSize(child, size);
 				break;			
 			}
 			case 13: {
 				setColor(child, matYellow);
+				setSphereSize(child, size);
 				break;
 			}
-			case 30: {
-				setColor(child, matYellow);
+			case 30: 
+			case 31: 
+			case 32: 
+			case 33: {
+				PhongMaterial mat = dddo.type == 30 ? matRed : (dddo.type == 31 ? matGreen : (dddo.type == 32 ? matBlue : matYellow));
+				setColor(child, mat);
+				DDDLineObject line = (DDDLineObject)dddo;
+				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
+				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
+				setLineSizeAndPos(child, from, to, (float)(size));
 				continue;
 			}
 			default:
@@ -419,6 +435,13 @@ public class GUIOutput3D extends Application {
 	}
 
 	
+
+	private void setColor(Node node, PhongMaterial mat) {
+		if (node instanceof Shape3D) {
+			((Shape3D) node).setMaterial(mat);
+		}
+	}
+
 	private void setBoxSize(Node child, float size) {
 		Box box = (Box) child;
 		box.setDepth(size);
@@ -426,12 +449,50 @@ public class GUIOutput3D extends Application {
 		box.setHeight(size);
 	}
 
-
-	private void setColor(Node node, PhongMaterial mat) {
-		if (node instanceof Shape3D) {
-			((Shape3D) node).setMaterial(mat);
-		}
+	private void setSphereSize(Node child, float size) {
+		Sphere sphere = (Sphere) child;
+		sphere.setRadius(0.5*size);
 	}
+
+	private void setLineSizeAndPos(Node child, Point3D lineFrom, Point3D lineTo, float size) {
+        Box line = (Box) child;
+
+        // x axis vector is <1,0,0>
+        // y axis vector is <0,1,0>
+        // z axis vector is <0,0,1>
+        // angle = arccos((P*Q)/(|P|*|Q|))
+        // define a point representing the Y axis
+        Point3D yAxis = new Point3D(0,1,0);
+        // define a point based on the difference of our end point from the start point of our segment
+        Point3D seg = lineTo.subtract(lineFrom);
+        // determine the length of our line or the height of our cylinder object
+        double height = seg.magnitude();
+        // get the midpoint of our line segment
+        Point3D midpoint = lineTo.midpoint(lineFrom);
+        // set up a translate transform to move to our cylinder to the midpoint
+        Translate moveToMidpoint = (Translate)line.getTransforms().get(0);
+        moveToMidpoint.setX(midpoint.getX());
+        moveToMidpoint.setY(midpoint.getY());
+        moveToMidpoint.setZ(midpoint.getZ());
+        
+        // get the axis about which we want to rotate our object
+        Point3D axisOfRotation = seg.crossProduct(yAxis);
+        // get the angle we want to rotate our cylinder
+        double angle = Math.acos(seg.normalize().dotProduct(yAxis));
+        // create our rotating transform for our cylinder object
+        Rotate rotateAroundCenter = (Rotate)line.getTransforms().get(1);
+        rotateAroundCenter.setAngle(-Math.toDegrees(angle));
+        rotateAroundCenter.setAxis(axisOfRotation);
+//        Rotate rotateAroundCenter = new Rotate(-Math.toDegrees(angle), axisOfRotation);
+        
+        line.setWidth(size);
+        line.setHeight(height);
+        line.setDepth(size);
+        // add our two transfroms to our cylinder object
+
+//        line.getTransforms().addAll(moveToMidpoint, rotateAroundCenter);
+	}
+
 
 	public void create(String titleText) {
 		
@@ -972,19 +1033,25 @@ public class GUIOutput3D extends Application {
 		state.add(new DDDObject( 1.0, -1.0, -1.0, 1.0, 0));
 
 		// E
-		state.add(new DDDObject(-1.0, -1.0,  1.0, 1.0, 0));
-		state.add(new DDDObject(-1.0,  0.0,  1.0, 1.0, 0));
-		state.add(new DDDObject(-1.0,  1.0,  1.0, 1.0, 0));
-		state.add(new DDDObject(-1.0,  2.0,  1.0, 1.0, 0));
-		state.add(new DDDObject(-1.0,  3.0,  1.0, 1.0, 0));
+		state.add(new DDDObject(-1.0, -1.0,  1.0, 1.0, 10));
+		state.add(new DDDObject(-1.0,  0.0,  1.0, 1.0, 10));
+		state.add(new DDDObject(-1.0,  1.0,  1.0, 1.0, 10));
+		state.add(new DDDObject(-1.0,  2.0,  1.0, 1.0, 10));
+		state.add(new DDDObject(-1.0,  3.0,  1.0, 1.0, 10));
 
-		state.add(new DDDObject( 0.0, -1.0,  1.0, 1.0, 0));
-		state.add(new DDDObject( 1.0, -1.0,  1.0, 1.0, 0));
+		state.add(new DDDObject( 0.0, -1.0,  1.0, 1.0, 10));
+		state.add(new DDDObject( 1.0, -1.0,  1.0, 1.0, 10));
 		
-		state.add(new DDDObject( 0.0,  1.0,  1.0, 1.0, 0));
+		state.add(new DDDObject( 0.0,  1.0,  1.0, 1.0, 10));
 		
-		state.add(new DDDObject( 0.0,  3.0,  1.0, 1.0, 0));
-		state.add(new DDDObject( 1.0,  3.0,  1.0, 1.0, 0));
+		state.add(new DDDObject( 0.0,  3.0,  1.0, 1.0, 10));
+		state.add(new DDDObject( 1.0,  3.0,  1.0, 1.0, 10));
+
+		
+		
+		state.add(new DDDLineObject("line1",  0.0,  -1.0,  0.0,  0.0,  3.0,  0.0, 0.1, 30));
+		state.add(new DDDLineObject("line2",  0.0,   1.0, -1.0,  0.0,  1.0,  1.0, 0.1, 30));
+		state.add(new DDDLineObject("line3", -1.0,   1.0,  0.0,  1.0,  1.0,  0.0, 0.1, 30));
 
 		
 		output.adjustScale(state);
@@ -1003,8 +1070,19 @@ public class GUIOutput3D extends Application {
 			int i=0;
 			for (DDDObject dddo : state) {
 				i++;
-				nextState.add(new DDDObject(dddo.id, dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
-						dddo.size + rand()*0.1 , ((i/3)%4)));
+				int type = dddo.type<10 ? 0 : 10;
+				if (dddo.type <30) {
+					nextState.add(new DDDObject(dddo.id, dddo.x + rand() * 0.05, dddo.y + rand() * 0.05, dddo.z + rand() * 0.05,
+							dddo.size + rand()*0.1 , type+((i/3)%4)));
+				}
+				else {
+					type = 30;
+					DDDLineObject dddol = (DDDLineObject) dddo;
+					nextState.add(new DDDLineObject(dddol.id, 
+							dddol.x + rand() * 0.05, dddol.y + rand() * 0.05, dddol.z + rand() * 0.05,
+							dddol.x2 + rand() * 0.05, dddol.y2 + rand() * 0.05, dddol.z2 + rand() * 0.05,
+							dddol.size + rand()*0.01, type+((i)%4)));
+				}
 			}
 			output.addStep("Testanimation", state);
 			state = nextState;

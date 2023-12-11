@@ -497,11 +497,13 @@ public class Y23Day08Animation3D {
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.name+neighbour.name, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
-					if ("CDBSDB".equals(line.id)) {
-						System.out.println("BREAK");
+					if (node.name.compareTo(neighbour.name) > 0) { 
+						GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.name+neighbour.name, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
+						if ("CDBSDB".equals(line.id)) {
+							System.out.println("BREAK");
+						}
+						points.add(line);
 					}
-					points.add(line);
 				}
 			}
 			if (output.scale == 1) {
