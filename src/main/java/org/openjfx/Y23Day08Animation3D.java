@@ -1,6 +1,8 @@
 package org.openjfx;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -100,7 +102,7 @@ public class Y23Day08Animation3D {
 	static Random random = new Random(RAND_SEED);
 	
 	public static double rand(double from, double to) {
-		return random.nextDouble(from, to);
+		return random.nextDouble()*(to-from)+from;
 	}
 	
 	static record Pos3D(double x, double y, double z) {
@@ -268,7 +270,7 @@ public class Y23Day08Animation3D {
 				GUIOutput3D.DDDObject point = new GUIOutput3D.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
+					GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 33);
 					points.add(line);
 				}
 			}
@@ -498,7 +500,7 @@ public class Y23Day08Animation3D {
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
 					if (node.name.compareTo(neighbour.name) > 0) { 
-						GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.name+neighbour.name, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30);
+						GUIOutput3D.DDDObject line = new GUIOutput3D.DDDLineObject(node.name+neighbour.name, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 33);
 						if ("CDBSDB".equals(line.id)) {
 							System.out.println("BREAK");
 						}
@@ -624,7 +626,8 @@ public class Y23Day08Animation3D {
 
 	
 
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws FileNotFoundException, URISyntaxException {
+		URL url;
 		System.out.println("--- PART I ---");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example.txt");
 //		mainPart1("../advent-of-code-2023/exercises/day08/Feri/input-example-2.txt");
@@ -632,7 +635,10 @@ public class Y23Day08Animation3D {
 		System.out.println("---------------");                           
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");
-		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input.txt");                
+//		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input.txt");
+		url = Y23Day08Animation3Db.class.getResource("/resources/input/aoc23day08/input.txt");
+		mainPart2(new File(url.toURI()).toString());		
+		
 		System.out.println("---------------");    //
 	}
 	
