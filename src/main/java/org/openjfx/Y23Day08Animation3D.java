@@ -26,7 +26,7 @@ public class Y23Day08Animation3D {
 	static final long RAND_SEED = 4;
 	static final double NET_DIST = 8.0;
 	static final long NET_ITERATIONS = 200;
-	static final double NET_SIZE_FACTOR = 0.7;
+	static final double NET_SIZE_FACTOR = 1.4;
 	
 	
 	
@@ -553,7 +553,7 @@ public class Y23Day08Animation3D {
 
 	
 	public static void mainPart1(String inputFile) {
-		output = new GUIOutput3D("Day 08 Part I");
+		output = new GUIOutput3D("Day 08 Part I", true);
 		output.setUseCachedNodes(true);
 		World world = new World();
 		for (InputData data:new InputProcessor(inputFile)) {
@@ -587,7 +587,7 @@ public class Y23Day08Animation3D {
 	
 	
 	public static void mainPart2(String inputFile) {
-		output = new GUIOutput3D("Day 08 Part II");
+		output = new GUIOutput3D("Day 08 Part II", true);
 		output.setUseCachedNodes(true);
 		World2 world2 = new World2();
 		for (InputData data:new InputProcessor(inputFile)) {

@@ -2,10 +2,11 @@ package org.openjfx;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -28,17 +29,10 @@ import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -51,7 +45,6 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
-import javafx.util.Pair;
 
 
 public class GUIOutput3D extends Application {
@@ -115,7 +108,20 @@ public class GUIOutput3D extends Application {
 	double offsetZ;
 	double radiusScale;
 
-	public GUIOutput3D(String title) {
+    Color white; 
+    Color red; 
+    Color green; 
+    Color yellow; 
+    Color blue; 
+    Color black; 
+    PhongMaterial matRed;
+    PhongMaterial matGreen;
+    PhongMaterial matYellow;
+    PhongMaterial matBlue;
+    PhongMaterial[] matColor;
+
+	
+	public GUIOutput3D(String title, boolean useCachedNodes) {
 		this.title = title;
 		this.dddObjects = new ArrayList<>();
 		this.dddTitles = new ArrayList<>();
@@ -126,10 +132,35 @@ public class GUIOutput3D extends Application {
 		this.offsetZ = 0.0;
 		this.radiusScale = 2.0;
 		this.nodeInfos = new HashMap<>();
-		this.useCachedNodes = false;
+		this.useCachedNodes = useCachedNodes;
+		initColors();
 		open();
 	}
 
+	
+	public void initColors() {
+        white  = new Color(1.0, 1.0, 1.0, 1.0); 
+        red    = new Color(1.0, 0.1, 0.1, 1.0); 
+        green  = new Color(0.1, 1.0, 0.1, 1.0); 
+        blue   = new Color(0.1, 0.1, 1.0, 1.0); 
+        yellow = new Color(1.0, 1.0, 0.1, 1.0); 
+        black  = new Color(0.0, 0.0, 0.0, 1.0);
+        
+        matRed = new PhongMaterial();
+        matRed.setDiffuseColor(red);
+        matRed.setSpecularColor(red);
+        matGreen = new PhongMaterial();
+        matGreen.setDiffuseColor(green);
+        matGreen.setSpecularColor(green);
+        matBlue = new PhongMaterial();
+        matBlue.setDiffuseColor(blue);
+        matBlue.setSpecularColor(blue);
+        matYellow = new PhongMaterial();
+        matYellow.setDiffuseColor(yellow);
+        matYellow.setSpecularColor(yellow);
+        
+        matColor = new PhongMaterial[] {matRed, matGreen, matBlue, matYellow};
+	}
 	
 	public void setUseCachedNodes(boolean useCachedNodesValue) {
 		useCachedNodes = useCachedNodesValue;
@@ -138,26 +169,22 @@ public class GUIOutput3D extends Application {
 		nodeInfos.clear();
 	}
 
-	private Node createSphere(float size, PhongMaterial matRed) {
+	private Node createSphere(float size, PhongMaterial mat) {
 		Node child;
 		Sphere sphere = new Sphere(0.5*size);
-		sphere.setMaterial(matRed);
+		sphere.setMaterial(mat);
 		child = sphere;
 		return child;
 	}
 
-	private Node createBox(float size, PhongMaterial matRed) {
+	private Node createBox(float size, PhongMaterial mat) {
 		Node child;
 		Box box = new Box(size, size, size);
-		box.setMaterial(matRed);
+		box.setMaterial(mat);
 		child = box;
 		return child;
 	}
 	
-	
-
-
-
     static public Cylinder createCylinder(Point3D lineFrom, Point3D lineTo) {
         // x axis vector is <1,0,0>
         // y axis vector is <0,1,0>
@@ -218,223 +245,6 @@ public class GUIOutput3D extends Application {
         return line;
     } // end of the createCylinder method
 	
-	
-	/**
-	 * from: http://www.java3d.org/position.html
-	 * 
-	 * @param universe
-	 * @return
-	 */
-	public SmartGroup createScene(List<DDDObject> dddOs) {
-
-        Color white  = new Color(1.0, 1.0, 1.0, 1.0); 
-        Color red    = new Color(1.0, 0.1, 0.1, 1.0); 
-        Color green  = new Color(0.1, 1.0, 0.1, 1.0); 
-        Color yellow = new Color(1.0, 1.0, 0.1, 1.0); 
-        Color blue   = new Color(0.1, 0.1, 1.0, 1.0); 
-        Color black  = new Color(0.0, 0.0, 0.0, 1.0); 
-        PhongMaterial matRed = new PhongMaterial();
-        matRed.setDiffuseColor(red);
-        matRed.setSpecularColor(red);
-        PhongMaterial matGreen = new PhongMaterial();
-        matGreen.setDiffuseColor(green);
-        matGreen.setSpecularColor(green);
-        PhongMaterial matYellow = new PhongMaterial();
-        matYellow.setDiffuseColor(yellow);
-        matYellow.setSpecularColor(yellow);
-        PhongMaterial matBlue = new PhongMaterial();
-        matBlue.setDiffuseColor(blue);
-        matBlue.setSpecularColor(blue);
-		
-		SmartGroup result = new SmartGroup();
-		nodeInfos.clear();
-		for (DDDObject dddo : dddOs) {
-			float size = (float) (radiusScale * scale * dddo.size);
-			Node child;
-			switch (dddo.type) {
-			case 0: {
-				child = createBox(size, matRed);
-				break;
-			}
-			case 1: {
-				child = createBox(size, matGreen);
-				break;
-			}
-			case 2: {
-				child = createBox(size, matBlue);
-				break;
-			}
-			case 3: {
-				child = createBox(size, matYellow);
-				break;
-			}
-			case 10: {
-				child = createSphere(size, matRed);
-				break;
-			}
-			case 11: {
-				child = createSphere(size, matGreen);
-				break;			
-			}
-			case 12: {
-				child = createSphere(size, matBlue);
-				break;			
-			}
-			case 13: {
-				child = createSphere(size, matYellow);
-				break;
-			}
-//			case 1:
-//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apGreen)";
-//				break;
-//			case 2:
-//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apBlue)";
-//				break;
-//			case 3:
-//				child = "new com.sun.j3d.utils.geometry.Box(size, size, size, apYellow)";
-//				break;
-//			case 10:
-//				child = "new Sphere(size, apRed)";
-//				break;
-//			case 11:
-//				child = "new Sphere(size, apGreen)";
-//				break;
-//			case 12:
-//				child = "new Sphere(size, apBlue)";
-//				break;
-//			case 13:
-//				child = "new Sphere(size, apYellow)";
-//				break;
-			case 30: 
-			case 31: 
-			case 32: 
-			case 33: {
-				PhongMaterial mat = dddo.type == 30 ? matRed : (dddo.type == 31 ? matGreen : (dddo.type == 32 ? matBlue : matYellow));
-				DDDLineObject line = (DDDLineObject)dddo;
-				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
-				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
-				child = createLineBox(from, to, (float)(size), mat);
-				result.getChildren().add(child);
-				nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
-				continue;
-			}
-			default:
-				throw new RuntimeException("invalid type " + dddo.type);
-			}
-//			child.translateXProperty().set(scale*(dddo.x-offsetX));
-//			child.translateYProperty().set(scale*(dddo.y-offsetY));
-//			child.translateZProperty().set(scale*(dddo.z-offsetZ));
-			child.setTranslateX(scale*(dddo.x-offsetX));
-			child.setTranslateY(scale*(dddo.y-offsetY));
-			child.setTranslateZ(scale*(dddo.z-offsetZ));
-			result.getChildren().add(child);
-			nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
-//    	      TransformGroup tg = new TransformGroup();
-//    	      Transform3D transform = new Transform3D();
-//    	      Vector3d vector = new Vector3d( scale*(dddo.x-offsetX), scale*(dddo.y-offsetY), scale*(dddo.z-offsetZ));
-//    	      transform.setTranslation(vector);
-//    	      tg.setTransform(transform);
-//    	      tg.addChild(child);
-//    	      group.addChild(tg);
-		}
-		return result;
-	}
-
-	public void updateSceneColors(List<DDDObject> dddOs) {
-
-        Color white  = new Color(1.0, 1.0, 1.0, 1.0); 
-        Color red    = new Color(1.0, 0.1, 0.1, 1.0); 
-        Color green  = new Color(0.1, 1.0, 0.1, 1.0); 
-        Color yellow = new Color(1.0, 1.0, 0.1, 1.0); 
-        Color blue   = new Color(0.1, 0.1, 1.0, 1.0); 
-        Color black  = new Color(0.0, 0.0, 0.0, 1.0); 
-        PhongMaterial matRed = new PhongMaterial();
-        matRed.setDiffuseColor(red);
-        matRed.setSpecularColor(red);
-        PhongMaterial matGreen = new PhongMaterial();
-        matGreen.setDiffuseColor(green);
-        matGreen.setSpecularColor(green);
-        PhongMaterial matYellow = new PhongMaterial();
-        matYellow.setDiffuseColor(yellow);
-        matYellow.setSpecularColor(yellow);
-        PhongMaterial matBlue = new PhongMaterial();
-        matBlue.setDiffuseColor(blue);
-        matBlue.setSpecularColor(blue);
-		
-		for (DDDObject dddo : dddOs) {
-			if (dddo.id == null) {
-				continue;
-			}
-			NodeInfo nodeInfo = nodeInfos.get(dddo.id);
-			if (nodeInfo == null) {
-				System.out.println("ID: "+dddo.id);
-			}
-			Node child = nodeInfo.node;
-			float size = (float) (radiusScale * scale * dddo.size);
-			switch (dddo.type) {
-			case 0: {
-				setColor(child, matRed);
-				setBoxSize(child, size);
-				break;
-			}
-			case 1: {
-				setColor(child, matGreen);
-				setBoxSize(child, size);
-				break;
-			}
-			case 2: {
-				setColor(child, matBlue);
-				setBoxSize(child, size);
-				break;
-			}
-			case 3: {
-				setColor(child, matYellow);
-				setBoxSize(child, size);
-				break;
-			}
-			case 10: {
-				setColor(child, matRed);
-				setSphereSize(child, size);
-				break;
-			}
-			case 11: {
-				setColor(child, matGreen);
-				setSphereSize(child, size);
-				break;			
-			}
-			case 12: {
-				setColor(child, matBlue);
-				setSphereSize(child, size);
-				break;			
-			}
-			case 13: {
-				setColor(child, matYellow);
-				setSphereSize(child, size);
-				break;
-			}
-			case 30: 
-			case 31: 
-			case 32: 
-			case 33: {
-				PhongMaterial mat = dddo.type == 30 ? matRed : (dddo.type == 31 ? matGreen : (dddo.type == 32 ? matBlue : matYellow));
-				setColor(child, mat);
-				DDDLineObject line = (DDDLineObject)dddo;
-				Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
-				Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
-				setLineSizeAndPos(child, from, to, (float)(size));
-				continue;
-			}
-			default:
-				throw new RuntimeException("invalid type " + dddo.type);
-			}
-			child.setTranslateX(scale*(dddo.x-offsetX));
-			child.setTranslateY(scale*(dddo.y-offsetY));
-			child.setTranslateZ(scale*(dddo.z-offsetZ));	
-			
-		}
-	}
-
-	
 
 	private void setColor(Node node, PhongMaterial mat) {
 		if (node instanceof Shape3D) {
@@ -494,86 +304,103 @@ public class GUIOutput3D extends Application {
 	}
 
 
-	public void create(String titleText) {
-		
-		// Create the custom dialog.
-		Dialog<Pair<String, String>> dialog = new Dialog<>();
-		dialog.setTitle("Login Dialog");
-		dialog.setHeaderText("Look, a Custom Login Dialog");
-	
-		// Set the icon (must be included in the project).
-		dialog.setGraphic(new ImageView(this.getClass().getResource("login.png").toString()));
-	
-		// Set the button types.
-		ButtonType loginButtonType = new ButtonType("Login", ButtonData.OK_DONE);
-		dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
-	
-		// Create the username and password labels and fields.
-		GridPane grid = new GridPane();
-		grid.setHgap(10);
-		grid.setVgap(10);
-		grid.setPadding(new Insets(20, 150, 10, 10));
-	
-		TextField username = new TextField();
-		username.setPromptText("Username");
-		PasswordField password = new PasswordField();
-		password.setPromptText("Password");
-	
-		grid.add(new Label("Username:"), 0, 0);
-		grid.add(username, 1, 0);
-		grid.add(new Label("Password:"), 0, 1);
-		grid.add(password, 1, 1);
-	
-		// Enable/Disable login button depending on whether a username was entered.
-		Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-		loginButton.setDisable(true);
-	
-		// Do some validation (using the Java 8 lambda syntax).
-		username.textProperty().addListener((observable, oldValue, newValue) -> {
-		    loginButton.setDisable(newValue.trim().isEmpty());
-		});
-	
-		dialog.getDialogPane().setContent(grid);
-	
-		// Request focus on the username field by default.
-		Platform.runLater(() -> username.requestFocus());
-	
-		// Convert the result to a username-password-pair when the login button is clicked.
-		dialog.setResultConverter(dialogButton -> {
-		    if (dialogButton == loginButtonType) {
-		        return new Pair<>(username.getText(), password.getText());
-		    }
-		    return null;
-		});
-	
-		Optional<Pair<String, String>> result = dialog.showAndWait();
-	
-		result.ifPresent(usernamePassword -> {
-		    System.out.println("Username=" + usernamePassword.getKey() + ", Password=" + usernamePassword.getValue());
-		});
+
+	private Node createNode(DDDObject dddo) {
+		Node child;
+		float size = (float) (radiusScale * scale * dddo.size);
+		boolean doTranslate = true;
+		switch (dddo.type) {
+		case 0,1,2,3: {
+			PhongMaterial mat = matColor[dddo.type];
+			child = createBox(size, mat);
+			break;
+		}
+		case 10,11,12,13: {
+			PhongMaterial mat = matColor[dddo.type-10];
+			child = createSphere(size, mat);
+			break;
+		}
+		case 30,31,32,33: {
+			PhongMaterial mat = matColor[dddo.type -30];
+			DDDLineObject line = (DDDLineObject)dddo;
+			Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
+			Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
+			child = createLineBox(from, to, (float)(size), mat);
+			doTranslate = false;
+			break;
+		}
+		default:
+			throw new RuntimeException("invalid type " + dddo.type);
+		}
+		if (doTranslate) {
+			child.setTranslateX(scale*(dddo.x-offsetX));
+			child.setTranslateY(scale*(dddo.y-offsetY));
+			child.setTranslateZ(scale*(dddo.z-offsetZ));
+		}
+		return child;
 	}
 
-	public static void createDialog(String titleText) {
-		//Create Stage
-		Stage newWindow = new Stage();
-		newWindow.setTitle("New Scene");
-		//Create view in Java
-		Label title = new Label(titleText);
-		TextField textField = new TextField("Enter your name here");
-		Button button = new Button("OK");
-		button.setOnAction(event -> {
-		    //handle button press
-		});
-		VBox container = new VBox(title, textField, button);
-		//Style container
-		container.setSpacing(15);
-		container.setPadding(new Insets(25));
-		container.setAlignment(Pos.CENTER);
-		//Set view in window
-		newWindow.setScene(new Scene(container));
-		//Launch
-		newWindow.show();
+	private void updateNode(Node child, DDDObject dddo) {
+		float size = (float) (radiusScale * scale * dddo.size);
+		boolean doTranslate = true;
+		switch (dddo.type) {
+		case 0,1,2,3: {
+			PhongMaterial mat = matColor[dddo.type];
+			setColor(child, mat);
+			setBoxSize(child, size);
+			break;
+		}
+		case 10,11,12,13: {
+			PhongMaterial mat = matColor[dddo.type-10];
+			setColor(child, mat);
+			setSphereSize(child, size);
+			break;
+		}
+		case 30,31,32,33: {
+			PhongMaterial mat = matColor[dddo.type-30];
+			setColor(child, mat);
+			DDDLineObject line = (DDDLineObject)dddo;
+			Point3D from = new Point3D(scale*(line.x-offsetX), scale*(line.y-offsetY), scale*(line.z-offsetZ));
+			Point3D to = new Point3D(scale*(line.x2-offsetX), scale*(line.y2-offsetY), scale*(line.z2-offsetZ));
+			setLineSizeAndPos(child, from, to, (float)(size));
+			doTranslate = false;
+			break;
+		}
+		default:
+			throw new RuntimeException("invalid type " + dddo.type);
+		}
+		if (doTranslate) {
+			child.setTranslateX(scale*(dddo.x-offsetX));
+			child.setTranslateY(scale*(dddo.y-offsetY));
+			child.setTranslateZ(scale*(dddo.z-offsetZ));
+		}
+		child.setVisible(true);
 	}
+
+	
+	public void updateNodes(Group parentGroup, List<DDDObject> dddOs) {
+
+		Set<String> missingNodeIDs = new HashSet<>(nodeInfos.keySet());
+		for (DDDObject dddo : dddOs) {
+			missingNodeIDs.remove(dddo.id);
+			NodeInfo nodeInfo = nodeInfos.get(dddo.id);
+			if (nodeInfo == null) {
+				Node child = createNode(dddo);
+				nodeInfos.put(dddo.id, new NodeInfo(dddo, child));
+				parentGroup.getChildren().add(child);
+			}
+			else {
+				Node child = nodeInfo.node;
+				updateNode(child, dddo);
+			}
+		}
+		for (String nodeID:missingNodeIDs) {
+			Node node = nodeInfos.get(nodeID).node;
+			node.setVisible(false);
+		}
+	}
+
+
 
     private int nextPage = -1;
 
@@ -604,18 +431,6 @@ public class GUIOutput3D extends Application {
 		}
 		List<DDDObject> dddo = dddObjects.get(currentStep);
 		updateScene(dddo);
-////    		newCanvas.setDoubleBufferEnable(true);
-////    		newCanvas.startRenderer();
-//		canvasPanel.remove(canvas);
-//		canvas = newCanvas;
-//		canvasPanel.add(canvas);
-//		canvasPanel.revalidate();
-//		canvasPanel.repaint();
-////		f.getContentPane().add(canvas);
-////		f.invalidate();
-////    		f.validate();
-////    		f.repaint();
-////    		System.out.println(dddo);
 	}
 
 	private void updateScene(List<DDDObject> dddo) {
@@ -623,14 +438,18 @@ public class GUIOutput3D extends Application {
 	}
 
 	private void updateSceneAsync(List<DDDObject> dddo) {
-		if (useCachedNodes && !nodeInfos.isEmpty()) {
-			updateSceneColors(dddo);
-			return;
+		if (useCachedNodes) {
+			updateNodes(currentScene, dddo);
 		}
-		SmartGroup newScene = createScene(dddo);
-		rootGroup.getChildren().remove(currentScene);
-		rootGroup.getChildren().add(newScene);
-		currentScene = newScene;
+		if (!useCachedNodes) {
+			nodeInfos.clear();
+			SmartGroup parentGroup = new SmartGroup();
+			updateNodes(parentGroup, dddo);
+			rootGroup.getChildren().remove(currentScene);
+			rootGroup.getChildren().add(parentGroup);
+			currentScene = parentGroup;
+		}
+
 	}
 
 	private void previous() {
@@ -787,31 +606,26 @@ public class GUIOutput3D extends Application {
 		
 		Button btSmaller = new Button("v");
         btSmaller.setOnAction(ev -> {
-        	clearCache();
         	smaller();
         });
         
         Button btBigger = new Button("^");
         btBigger.setOnAction(ev -> {
-        	clearCache();
         	bigger();
         });
 		
         Button btAdjustScale = new Button("Adjust Scale");
         btAdjustScale.setOnAction(ev -> {
-        	clearCache();
         	adjustScale();
         });
         
         Button btScaleUp = new Button("+");
         btScaleUp.setOnAction(ev -> {
-        	clearCache();
         	scaleUp();
         });
         
         Button btScaleDown = new Button("-");
         btScaleDown.setOnAction(ev -> {
-        	clearCache();
         	scaleDown();
         });
         
@@ -820,18 +634,8 @@ public class GUIOutput3D extends Application {
         	animation();
         });
 
-        Button btBlue = new Button("blue");
-        btBlue.setOnAction(ev -> {
-        	buttonBlue();
-        });
-
-        Button btRed = new Button("red");
-        btRed.setOnAction(ev -> {
-        	buttonRed();
-        });
-
 		lbTextID = new Label("0");
-		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btScaleUp, btScaleDown, btAnimation, btBlue, btRed, lbTextID);
+		HBox buttons = new HBox(btPrevious, btNext, btSmaller, btBigger, btAdjustScale, btScaleUp, btScaleDown, btAnimation, lbTextID);
 		buttons.setSpacing(5);
 //		buttons.setPadding(new Insets(5));
 		
@@ -862,9 +666,9 @@ public class GUIOutput3D extends Application {
 		Group groupALL = new Group(vbox);
 		Scene scene = new Scene(groupALL);
 		
-		Box box = new Box(10, 2, 5);
 		currentScene = new SmartGroup();
-		currentScene.getChildren().add(box);
+//		Box box = new Box(10, 2, 5);
+//		currentScene.getChildren().add(box);
 	    rootGroup = group3D;
 	    rootGroup.getChildren().add(currentScene);
         Camera camera = new PerspectiveCamera();
@@ -904,14 +708,6 @@ public class GUIOutput3D extends Application {
 		primaryStage.show();
 	}
 	
-    private void buttonBlue() {
-    	setNodeColors(new Color(0.1, 0.1, 1.0, 1.0));
-	}
-
-    private void buttonRed() {
-    	setNodeColors(new Color(1.0, 0.1, 0.1, 1.0));
-	}
-
     private void setNodeColors(Color col) {
         PhongMaterial mat = new PhongMaterial();
         mat.setDiffuseColor(col);
@@ -1014,8 +810,7 @@ public class GUIOutput3D extends Application {
 	}
 
 	public static void main(String[] args) throws Exception {
-		GUIOutput3D output = new GUIOutput3D("GUIOutput3D Test");
-		output.setUseCachedNodes(true);
+		GUIOutput3D output = new GUIOutput3D("GUIOutput3D Test", true);
 		output.smaller();
 		
 		List<DDDObject> state = new ArrayList<>();
@@ -1031,6 +826,7 @@ public class GUIOutput3D extends Application {
 		
 		state.add(new DDDObject( 0.0, -1.0, -1.0, 1.0, 0));
 		state.add(new DDDObject( 1.0, -1.0, -1.0, 1.0, 0));
+		output.addStep("E", state);		
 
 		// E
 		state.add(new DDDObject(-1.0, -1.0,  1.0, 1.0, 10));
@@ -1046,6 +842,7 @@ public class GUIOutput3D extends Application {
 		
 		state.add(new DDDObject( 0.0,  3.0,  1.0, 1.0, 10));
 		state.add(new DDDObject( 1.0,  3.0,  1.0, 1.0, 10));
+		output.addStep("E", state);		
 
 		
 		
@@ -1055,7 +852,7 @@ public class GUIOutput3D extends Application {
 
 		
 		output.adjustScale(state);
-		output.addStep("Initial Dummy", state);		
+		output.addStep("Lines", state);		
 		
 		
 //		state = new ArrayList<>();

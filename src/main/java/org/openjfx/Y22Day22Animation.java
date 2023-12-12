@@ -636,7 +636,7 @@ public class Y22Day22Animation {
 		
 		public void output() {
 			List<GUIOutput3D.DDDObject> points = new ArrayList<>();
-			points.add(new GUIOutput3D.DDDObject(0, 0, 0, 0.5*cubeSize, 2));
+			points.add(new GUIOutput3D.DDDObject("0", 0, 0, 0, 0.5*cubeSize, 2));
 			for (SurfaceDef sDef:surfaceDefs.values()) {
 				for (int y=0; y<cubeSize; y++) {
 					for (int x=0; x<cubeSize; x++) {
@@ -651,7 +651,7 @@ public class Y22Day22Animation {
 								type = 13;
 							}
 							Pos3D outPos = sDef.topLeftPos.add(x+1, sDef.xUnitVector).add(y+1, sDef.yUnitVector);
-							points.add(new GUIOutput3D.DDDObject(outPos.x, outPos.y, outPos.z, 0.5, type));
+							points.add(new GUIOutput3D.DDDObject(outPos.toString(), outPos.x, outPos.y, outPos.z, 0.5, type));
 						}
 					}
 				}
@@ -665,7 +665,7 @@ public class Y22Day22Animation {
 	}
 	
 	public static void mainPart2(String inputFile, int cubeSize) {
-		output = new GUIOutput3D("Day 22 Part I");
+		output = new GUIOutput3D("Day 22 Part I", true);
 
 		World world = new World(cubeSize);
 		for (InputData data : new InputProcessor(inputFile)) {
@@ -695,8 +695,11 @@ public class Y22Day22Animation {
 //			mainPart2("exercises/day22/Feri/input-example.txt", 4);
 //			mainPart2("exercises/day22/Feri/input-example2.txt", 3);
 		
-		url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22-input-example2.txt");
-		mainPart2(new File(url.toURI()).toString(), 3);
+//		url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22-input-example2.txt");
+//		mainPart2(new File(url.toURI()).toString(), 3);
+		
+		url = Y22Day22Animation.class.getResource("/resources/input/aoc22d22-input.txt");
+		mainPart2(new File(url.toURI()).toString(), 50);
 		
 //			mainPart2("exercises/day22/Feri/input-example3.txt", 4);
 //			mainPart2("exercises/day22/Feri/input.txt", 50);        
