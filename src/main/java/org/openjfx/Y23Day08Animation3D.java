@@ -636,7 +636,7 @@ public class Y23Day08Animation3D {
 		System.out.println("--- PART II ---");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input-example-3.txt");
 //		mainPart2("../advent-of-code-2023/exercises/day08/Feri/input.txt");
-		url = Y23Day08Animation3Db.class.getResource("/resources/input/aoc23day08/input.txt");
+		url = Y23Day08Animation3D.class.getResource("/resources/input/aoc23day08/input.txt");
 		mainPart2(new File(url.toURI()).toString());		
 		
 		System.out.println("---------------");    //
