@@ -1,5 +1,7 @@
 package org.openjfx;
 
+// from: https://github.com/FXyz/FXyz/blob/master/README.md#application-class
+
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
