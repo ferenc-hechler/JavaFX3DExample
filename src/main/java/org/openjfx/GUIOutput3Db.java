@@ -12,6 +12,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 import org.fxyz3d.shapes.primitives.Text3DMesh;
+import org.poly2tri.geometry.polygon.PolygonPoint;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -19,6 +20,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point3D;
@@ -671,10 +673,52 @@ public class GUIOutput3Db extends Application {
 		currentScene = new SmartGroup();
 		
 		
-//		Box box = new Box(10, 2, 5);
-//		currentScene.getChildren().add(box);
+		Box box = new Box(1, 1, 1);
+		box.setTranslateX(-5);
+		box.setTranslateY(-5);
+		box.setTranslateZ(0);
+		currentScene.getChildren().add(box);
 		
-		Text3DMesh text3D = new Text3DMesh("Test");
+		box = new Box(1, 1, 1);
+		box.setTranslateX(-5);
+		box.setTranslateY(5);
+		box.setTranslateZ(0);
+		currentScene.getChildren().add(box);
+		
+		box = new Box(1, 1, 1);
+		box.setTranslateX(5);
+		box.setTranslateY(5);
+		box.setTranslateZ(0);
+		currentScene.getChildren().add(box);
+		
+		box = new Box(1, 1, 1);
+		box.setTranslateX(5);
+		box.setTranslateY(-5);
+		box.setTranslateZ(0);
+		currentScene.getChildren().add(box);
+		
+	    String TEXT3D = "ABCXDEF";
+	    String FONT = "Courier New"; //  "Arial";
+	    int FONT_SIZE = 54; // 11; // 
+	    boolean JOIN_SEGMENTS = true;
+	    double TEXT_DEPTH = 10d;     // 10d;
+	    double GAP = 0d;
+	    int LEVEL = 1;
+		
+		Text3DMesh text3D = new Text3DMesh(TEXT3D, FONT, FONT_SIZE, JOIN_SEGMENTS, TEXT_DEPTH, GAP, LEVEL);
+		Bounds textBounds = text3D.getLayoutBounds();
+		System.out.println(textBounds);
+		text3D.setScaleX(10.0d/textBounds.getHeight());
+		text3D.setScaleY(10.0d/textBounds.getHeight());
+		text3D.setScaleZ(10.0d/textBounds.getHeight());
+//		text3D.translateXProperty().set(-textBounds.getCenterX());
+//		text3D.translateYProperty().set(-textBounds.getCenterY());
+//		text3D.translateZProperty().set(-textBounds.getCenterZ());
+		text3D.translateXProperty().set(-textBounds.getCenterX());
+		text3D.translateYProperty().set(-textBounds.getCenterY());
+		text3D.translateZProperty().set(-textBounds.getCenterZ());
+		
+//		Text3DMesh text3D = new Text3DMesh("Test");
 		currentScene.getChildren().add(text3D);
 		
 		
