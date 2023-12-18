@@ -285,7 +285,11 @@ public class Y23Day17Animation3D {
 			searchPaths.add(new State(0, startPosV, startPosV));
 			minimalHeatLoss.put(startPosH, 0);
 			minimalHeatLoss.put(startPosV, 0);
+			int cnt=0;
 			while (true) {
+//				if (cnt++>50) {
+//					return -1;
+//				}
 				State currentSearch = searchPaths.poll();
 				show3D(currentSearch);
 //				output.addStep(currentSearch+"\n"+showMinimalMoves());
@@ -391,6 +395,7 @@ public class Y23Day17Animation3D {
 		URL url;
 		System.out.println("--- PART I ---");
 		url = Y23Day17Animation3D.class.getResource("/resources/input/aoc23day17/input-example.txt");
+//		url = Y23Day17Animation3D.class.getResource("/resources/input/aoc23day17/input.txt");
 		mainPart1(new File(url.toURI()).toString());
 //		mainPart1("../input-example.txt");
 //		mainPart1("exercises/day17/Feri/input-example.txt");
