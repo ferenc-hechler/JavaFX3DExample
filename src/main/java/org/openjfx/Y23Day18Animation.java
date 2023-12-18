@@ -18,9 +18,9 @@ import org.openjfx.Y23Day17Animation3D.Pos;
 /**
  * see: https://adventofcode.com/2023/day/18
  */
-public class Y23Day18 {
+public class Y23Day18Animation {
 
-	static Y23GUIOutput3D17 output;
+	static Y23GUIOutput3D18 output;
 //	static Y23GUIOutput18 output;
 
 	/*
@@ -418,36 +418,36 @@ public class Y23Day18 {
 		public void show3D(String info) {
 			long Z_OFFSET=Math.max(1,(maxPos.y-minPos.y)/1000);
 			double LINE_WIDTH=Math.max(0.1,(maxPos.y-minPos.y)/100000.0);
-			Y23GUIOutput3D17.DDDObject line;
-			List<Y23GUIOutput3D17.DDDObject> lines = new ArrayList<>();
+			Y23GUIOutput3D18.DDDObject line;
+			List<Y23GUIOutput3D18.DDDObject> lines = new ArrayList<>();
 			for (HLine hLine:hLines) {
 				double lSize = LINE_WIDTH;
 				int lType = 30;
-				line = new Y23GUIOutput3D17.DDDLineObject(hLine.toString(), hLine.fromX,hLine.y,0, hLine.toX,hLine.y,0, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(hLine.toString(), hLine.fromX,hLine.y,0, hLine.toX,hLine.y,0, lSize, lType);
 				lines.add(line);
 			}
 			for (VLine vLine:vLines) {
 				double lSize = LINE_WIDTH;
 				int lType = 30;
-				line = new Y23GUIOutput3D17.DDDLineObject(vLine.toString(), vLine.x,vLine.fromY,0, vLine.x,vLine.toY,0, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(vLine.toString(), vLine.x,vLine.fromY,0, vLine.x,vLine.toY,0, lSize, lType);
 				lines.add(line);
 			}
 			for (Area area:fillAreas) {
 				double lSize = LINE_WIDTH;
 				int lType = 31;
-				line = new Y23GUIOutput3D17.DDDLineObject(area+"-1", area.fromX,area.fromY,Z_OFFSET, area.toX,area.fromY,Z_OFFSET, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(area+"-1", area.fromX,area.fromY,Z_OFFSET, area.toX,area.fromY,Z_OFFSET, lSize, lType);
 				lines.add(line);
-				line = new Y23GUIOutput3D17.DDDLineObject(area+"-2", area.toX,area.fromY,Z_OFFSET, area.toX,area.toY,Z_OFFSET, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(area+"-2", area.toX,area.fromY,Z_OFFSET, area.toX,area.toY,Z_OFFSET, lSize, lType);
 				lines.add(line);
-				line = new Y23GUIOutput3D17.DDDLineObject(area+"-3", area.toX,area.toY,Z_OFFSET, area.fromX,area.toY,Z_OFFSET, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(area+"-3", area.toX,area.toY,Z_OFFSET, area.fromX,area.toY,Z_OFFSET, lSize, lType);
 				lines.add(line);
-				line = new Y23GUIOutput3D17.DDDLineObject(area+"-4", area.fromX,area.toY,Z_OFFSET, area.fromX,area.fromY,Z_OFFSET, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(area+"-4", area.fromX,area.toY,Z_OFFSET, area.fromX,area.fromY,Z_OFFSET, lSize, lType);
 				lines.add(line);
 			}
 			for (VLine innerVLine:innerVLines) {
 				double lSize = LINE_WIDTH;
 				int lType = 32;
-				line = new Y23GUIOutput3D17.DDDLineObject(innerVLine.toString(), innerVLine.x,innerVLine.fromY,2*Z_OFFSET, innerVLine.x,innerVLine.toY,2*Z_OFFSET, lSize, lType);
+				line = new Y23GUIOutput3D18.DDDLineObject(innerVLine.toString(), innerVLine.x,innerVLine.fromY,2*Z_OFFSET, innerVLine.x,innerVLine.toY,2*Z_OFFSET, lSize, lType);
 				lines.add(line);
 			}
 			if (output.scale == 1) {
@@ -477,7 +477,7 @@ public class Y23Day18 {
 
 
 	public static void mainPart2(String inputFile) {
-		output = new Y23GUIOutput3D17("day 18 part II", true);
+		output = new Y23GUIOutput3D18("day 18 part II", true);
 		World2 world2 = new World2();
 		for (InputData data:new InputProcessor(inputFile)) {
 			System.out.println(data);
@@ -499,8 +499,8 @@ public class Y23Day18 {
 		System.out.println("--- PART II ---");
 		URL url;
 		System.out.println("--- PART I ---");
-//		url = Y23Day18.class.getResource("/resources/input/aoc23day18/input-example.txt");
-		url = Y23Day18.class.getResource("/resources/input/aoc23day18/input.txt");
+		url = Y23Day18Animation.class.getResource("/resources/input/aoc23day18/input-example.txt");
+//		url = Y23Day18Animation.class.getResource("/resources/input/aoc23day18/input.txt");
 		mainPart2(new File(url.toURI()).toString());
 //		mainPart2("exercises/day18/Feri/input-example.txt");
 //		mainPart2("exercises/day18/Feri/input.txt");
