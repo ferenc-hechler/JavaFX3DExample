@@ -282,14 +282,17 @@ public class Y23GUIOutput3D18 extends Application {
     	if (dirV == DIR_VECTOR.AXIS_X) {
 			mesh.setScaleZ(width);
 			mesh.setScaleY(height);
+			mesh.setScaleX(height);
     	}
     	else if (dirV == DIR_VECTOR.AXIS_Y) {
 			mesh.setScaleX(width);
 			mesh.setScaleZ(height);
+			mesh.setScaleY(height);
     	}
     	else { // dirV == DIR_VECTOR.AXIS_Z
 			mesh.setScaleX(width);
 			mesh.setScaleY(height);
+			mesh.setScaleZ(height);
     	}
 		mesh.setMaterial(mat);
         return mesh;
@@ -304,14 +307,17 @@ public class Y23GUIOutput3D18 extends Application {
     	if (dirV == DIR_VECTOR.AXIS_X) {
 			mesh.setScaleZ(width);
 			mesh.setScaleY(height);
+			mesh.setScaleX(height);
     	}
     	else if (dirV == DIR_VECTOR.AXIS_Y) {
 			mesh.setScaleX(width);
 			mesh.setScaleZ(height);
+			mesh.setScaleY(height);
     	}
     	else { // dirV == DIR_VECTOR.AXIS_Z
 			mesh.setScaleX(width);
 			mesh.setScaleY(height);
+			mesh.setScaleZ(height);
     	}
     } 
 	
@@ -1215,14 +1221,14 @@ public class Y23GUIOutput3D18 extends Application {
 		
 		state.add(new DDDObject(-1.0,  3.0, -1.0, 1.0, 0));
 
-		state.add(new DDDAreaObject(0.0,0.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
-		state.add(new DDDAreaObject(1.0,0.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(0.0,0.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(1.0,0.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
 		
-		state.add(new DDDAreaObject(1.0,3.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_Y));
+		state.add(new DDDAreaObject(1.0,3.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Y));
 
-		state.add(new DDDAreaObject(1.0,2.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_X));
+		state.add(new DDDAreaObject(1.0,2.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_X));
 
-		state.add(new DDDAreaObject(1.0,4.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(1.0,4.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
 		
 		output.addStep("F", state);		
 
