@@ -18,7 +18,7 @@ import org.openjfx.Y23Day17Animation3D.Pos;
 /**
  * see: https://adventofcode.com/2023/day/18
  */
-public class Y23Day18Animation {
+public class Y23Day18Animation3D {
 
 	static Y23GUIOutput3D18 output;
 //	static Y23GUIOutput18 output;
@@ -264,7 +264,13 @@ public class Y23Day18Animation {
 			return "A["+fromX+".."+toX+","+fromY+".."+toY+"]";
 		}
 		public long calcSize() {
-			return (toX-fromX+1)*(toY-fromY+1);
+			return width()*height();
+		}
+		public long width() {
+			return toX-fromX+1;
+		}
+		public long height() {
+			return toY-fromY+1;
 		}
 	}
 	
@@ -417,7 +423,7 @@ public class Y23Day18Animation {
 		
 		public void show3D(String info) {
 			long Z_OFFSET=Math.max(1,(maxPos.y-minPos.y)/1000);
-			double LINE_WIDTH=Math.max(0.1,(maxPos.y-minPos.y)/100000.0);
+			double LINE_WIDTH=Math.max(0.1,(maxPos.y-minPos.y)/1000.0);
 			Y23GUIOutput3D18.DDDObject line;
 			List<Y23GUIOutput3D18.DDDObject> lines = new ArrayList<>();
 			for (HLine hLine:hLines) {
@@ -433,16 +439,13 @@ public class Y23Day18Animation {
 				lines.add(line);
 			}
 			for (Area area:fillAreas) {
-				double lSize = LINE_WIDTH;
-				int lType = 31;
-				line = new Y23GUIOutput3D18.DDDLineObject(area+"-1", area.fromX,area.fromY,Z_OFFSET, area.toX,area.fromY,Z_OFFSET, lSize, lType);
-				lines.add(line);
-				line = new Y23GUIOutput3D18.DDDLineObject(area+"-2", area.toX,area.fromY,Z_OFFSET, area.toX,area.toY,Z_OFFSET, lSize, lType);
-				lines.add(line);
-				line = new Y23GUIOutput3D18.DDDLineObject(area+"-3", area.toX,area.toY,Z_OFFSET, area.fromX,area.toY,Z_OFFSET, lSize, lType);
-				lines.add(line);
-				line = new Y23GUIOutput3D18.DDDLineObject(area+"-4", area.fromX,area.toY,Z_OFFSET, area.fromX,area.fromY,Z_OFFSET, lSize, lType);
-				lines.add(line);
+				int lType = 51;
+				double width = area.width();
+				double height = area.height();
+				double size = (float)height;
+				double ratio = width/height;
+				Y23GUIOutput3D18.DDDAreaObject dddao = new Y23GUIOutput3D18.DDDAreaObject(area.toString(), 0.5*(area.fromX+area.toX),0.5*(area.fromY+area.toY),Z_OFFSET, ratio, size, lType);
+				lines.add(dddao);
 			}
 			for (VLine innerVLine:innerVLines) {
 				double lSize = LINE_WIDTH;
@@ -499,7 +502,7 @@ public class Y23Day18Animation {
 		System.out.println("--- PART II ---");
 		URL url;
 		System.out.println("--- PART I ---");
-		url = Y23Day18Animation.class.getResource("/resources/input/aoc23day18/input-example.txt");
+		url = Y23Day18Animation3D.class.getResource("/resources/input/aoc23day18/input-example.txt");
 //		url = Y23Day18Animation.class.getResource("/resources/input/aoc23day18/input.txt");
 		mainPart2(new File(url.toURI()).toString());
 //		mainPart2("exercises/day18/Feri/input-example.txt");

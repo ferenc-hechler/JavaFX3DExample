@@ -1221,8 +1221,10 @@ public class Y23GUIOutput3D18 extends Application {
 		
 		state.add(new DDDObject(-1.0,  3.0, -1.0, 1.0, 0));
 
-		state.add(new DDDAreaObject(0.0,0.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
-		state.add(new DDDAreaObject(1.0,0.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(0.0,0.0,-1.0, 1.0/4.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(1.0,0.0,-1.0, 1.0/4.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(1.625,0.0,-1.0, 1.0/1.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
+		state.add(new DDDAreaObject(2.25,0.0,-1.0, 1.0/4.0, 1.0, 51, DIR_VECTOR.AXIS_Z));
 		
 		state.add(new DDDAreaObject(1.0,3.0,-1.0, 1.0/3.0, 1.0, 51, DIR_VECTOR.AXIS_Y));
 
