@@ -445,6 +445,7 @@ public class Y23Day18Animation3D {
 				double size = (float)height;
 				double ratio = width/height;
 				Y23GUIOutput3D18.DDDAreaObject dddao = new Y23GUIOutput3D18.DDDAreaObject(area.toString(), 0.5*(area.fromX+area.toX),0.5*(area.fromY+area.toY),Z_OFFSET, ratio, size, lType);
+				dddao.setSizeFixed();
 				lines.add(dddao);
 			}
 			for (VLine innerVLine:innerVLines) {

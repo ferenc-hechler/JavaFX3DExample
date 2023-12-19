@@ -76,6 +76,7 @@ public class Y23GUIOutput3D18 extends Application {
 		double z;
 		double size;
 		int type;
+		boolean fixedSize;
 
 		public DDDObject(double x, double y, double z, double size, int type) {
 			this(null, x, y, z, size, type);
@@ -87,7 +88,13 @@ public class Y23GUIOutput3D18 extends Application {
 			this.z = z;
 			this.size = size;
 			this.type = type;
+			this.fixedSize = false;
 		}
+		
+		public void setSizeFixed() {
+			fixedSize = true;
+		}
+
 		
 		@Override
 		public String toString() {
@@ -275,25 +282,13 @@ public class Y23GUIOutput3D18 extends Application {
     static public MeshView createArea(Point3D center, double ratio, float size, PhongMaterial mat, DIR_VECTOR dirV) {
     	double height = size;
     	double width = ratio*size; 
-    	MeshView mesh = createAreaMesh(dirV);
+    	MeshView mesh = createAreaMesh((float)ratio, dirV);
     	mesh.setTranslateX(center.getX());
     	mesh.setTranslateY(center.getY());
     	mesh.setTranslateZ(center.getZ());
-    	if (dirV == DIR_VECTOR.AXIS_X) {
-			mesh.setScaleZ(width);
-			mesh.setScaleY(height);
-			mesh.setScaleX(height);
-    	}
-    	else if (dirV == DIR_VECTOR.AXIS_Y) {
-			mesh.setScaleX(width);
-			mesh.setScaleZ(height);
-			mesh.setScaleY(height);
-    	}
-    	else { // dirV == DIR_VECTOR.AXIS_Z
-			mesh.setScaleX(width);
-			mesh.setScaleY(height);
-			mesh.setScaleZ(height);
-    	}
+		mesh.setScaleX(height);
+		mesh.setScaleY(height);
+		mesh.setScaleZ(height);
 		mesh.setMaterial(mat);
         return mesh;
     } 
@@ -304,21 +299,9 @@ public class Y23GUIOutput3D18 extends Application {
     	mesh.setTranslateX(center.getX());
     	mesh.setTranslateY(center.getY());
     	mesh.setTranslateZ(center.getZ());
-    	if (dirV == DIR_VECTOR.AXIS_X) {
-			mesh.setScaleZ(width);
-			mesh.setScaleY(height);
-			mesh.setScaleX(height);
-    	}
-    	else if (dirV == DIR_VECTOR.AXIS_Y) {
-			mesh.setScaleX(width);
-			mesh.setScaleZ(height);
-			mesh.setScaleY(height);
-    	}
-    	else { // dirV == DIR_VECTOR.AXIS_Z
-			mesh.setScaleX(width);
-			mesh.setScaleY(height);
-			mesh.setScaleZ(height);
-    	}
+		mesh.setScaleX(height);
+		mesh.setScaleY(height);
+		mesh.setScaleZ(height);
     } 
 	
 
@@ -553,7 +536,8 @@ public class Y23GUIOutput3D18 extends Application {
 
 	private Node createNode(DDDObject dddo) {
 		Node child;
-		float size = (float) (radiusScale * scale * dddo.size);
+		double rScale = dddo.fixedSize ? 1 : radiusScale;
+		float size = (float) (rScale * scale * dddo.size);
 		boolean doTranslate = true;
 		switch (dddo.type) {
 		case 0,1,2,3: {
@@ -604,31 +588,31 @@ public class Y23GUIOutput3D18 extends Application {
 	}
 
 	
-	public static MeshView createAreaMesh(DIR_VECTOR dirV) {
+	public static MeshView createAreaMesh(float ratio, DIR_VECTOR dirV) {
 
 		float[] points;
 		if (dirV == DIR_VECTOR.AXIS_X) {
 			points = new float[] {
-					 0, -0.5f,  0.5f,
-					 0, -0.5f, -0.5f,
-					 0,  0.5f,  0.5f,
-					 0,  0.5f, -0.5f,
+					 0, -0.5f,  0.5f*ratio,
+					 0, -0.5f, -0.5f*ratio,
+					 0,  0.5f,  0.5f*ratio,
+					 0,  0.5f, -0.5f*ratio,
 		        };
 		}
 		else if (dirV == DIR_VECTOR.AXIS_Y) {
 			points = new float[] {
-		            -0.5f, 0,  0.5f,
-		            -0.5f, 0, -0.5f,
-		             0.5f, 0,  0.5f,
-		             0.5f, 0, -0.5f,
+		            -0.5f*ratio, 0,  0.5f,
+		            -0.5f*ratio, 0, -0.5f,
+		             0.5f*ratio, 0,  0.5f,
+		             0.5f*ratio, 0, -0.5f,
 		        };
 		}
 		else { // dirV == DIR_VECTOR.AXIS_Z 
 			points = new float[] {
-		            -0.5f,  0.5f, 0,
-		            -0.5f, -0.5f, 0,
-		             0.5f,  0.5f, 0,
-		             0.5f, -0.5f, 0,
+		            -0.5f*ratio,  0.5f, 0,
+		            -0.5f*ratio, -0.5f, 0,
+		             0.5f*ratio,  0.5f, 0,
+		             0.5f*ratio, -0.5f, 0,
 		        };
 		}
         float[] texCoords = { 
@@ -658,7 +642,8 @@ public class Y23GUIOutput3D18 extends Application {
 	}	
 	
 	private void updateNode(Node child, DDDObject dddo) {
-		float size = (float) (radiusScale * scale * dddo.size);
+		double rScale = dddo.fixedSize ? 1 : radiusScale;
+		float size = (float) (rScale * scale * dddo.size);
 		boolean doTranslate = true;
 		switch (dddo.type) {
 		case 0,1,2,3: {
