@@ -518,15 +518,15 @@ public class Y23Day24 {
 
 	
 	public static void mainPart2(String inputFile) {
-//		output = new Y23GUIOutput3D18("Day 22 Part I", true);
+		output = new Y23GUIOutput3D18("Day 22 Part I", true);
 		World world = new World();
 		for (InputData data:new InputProcessor(inputFile)) {
 //			System.out.println(data);
 			world.addHail(new Hail(data.pos, data.v));
 		}
-		world.testSolution();
-		if (true)
-			return;
+//		world.testSolution();
+//		if (true)
+//			return;
 		world.show3D("init");
 		world.fillClosestPositions();
 		world.show3D("closest");
@@ -575,11 +575,6 @@ public class Y23Day24 {
 //		mainPart2("exercises/day24/Feri/input-example.txt");
 //		mainPart2("exercises/day24/Feri/input.txt");
 		System.out.println("---------------");    
-	}
-
-	private static void testSolution() {
-		
-		
 	}
 
 	private static void testClosestPos() {
