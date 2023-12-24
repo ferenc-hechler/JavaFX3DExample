@@ -1,6 +1,8 @@
 package org.openjfx;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import org.openjfx.Y23GUIOutput3D18.DDDObject;
  */
 public class Y23Day24 {
 
+	static MathContext mc  = new MathContext(20); 
 	static Y23GUIOutput3D18 output;
 
 	/*
@@ -68,52 +71,77 @@ public class Y23Day24 {
 		}
 	}
 
-
-	static record Pos(double x, double y, double z) {
+	static boolean LT(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.compareTo(bd2)<0;
+	}
+	static boolean LE(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.compareTo(bd2)<=0;
+	}
+	static boolean GT(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.compareTo(bd2)>0;
+	}
+	static boolean GE(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.compareTo(bd2)>=0;
+	}
+	static BigDecimal MIN(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.min(bd2);
+	}
+	static BigDecimal MAX(BigDecimal bd1, BigDecimal bd2) {
+		return bd1.max(bd2);
+	}
+	
+	
+	static record Pos(BigDecimal x, BigDecimal y, BigDecimal z) {
+		public Pos(long x, long y, long z) {
+			this(BigDecimal.valueOf(x), BigDecimal.valueOf(y), BigDecimal.valueOf(z));
+		}
+		public Pos(double x, double y, double z) {
+			this(BigDecimal.valueOf(x), BigDecimal.valueOf(y), BigDecimal.valueOf(z));
+		}
 		@Override public String toString() { return "("+x+","+y+","+z+")"; }
-		public Pos add(double dx, double dy, double dz) {
-			return new Pos(x+dx, y+dy, z+dz);
+		public Pos add(BigDecimal dx, BigDecimal dy, BigDecimal dz) {
+			return new Pos(x.add(dx), y.add(dy), z.add(dz));
 		}
 		public Pos add(Pos other) {
-			return new Pos(x+other.x, y+other.y, z+other.z);
+			return new Pos(x.add(other.x), y.add(other.y), z.add(other.z));
 		}
 		public Pos subtract(Pos other) {
-			return new Pos(x-other.x, y-other.y, z-other.z);
+			return new Pos(x.subtract(other.x), y.subtract(other.y), z.subtract(other.z));
 		}
-		public double manhattenDist(Pos other) {
-			return Math.abs(x-other.x) + Math.abs(y-other.y) + Math.abs(z-other.z);
+		public BigDecimal manhattenDist(Pos other) {
+			return x.subtract(other.x).abs().add(y.subtract(other.y).abs().add(z.subtract(other.z).abs()));
 		}
-		public Pos multiply(double k) {
-			return new Pos(k*x, k*y, k*z);
+		public Pos multiply(BigDecimal k) {
+			return new Pos(k.multiply(x), k.multiply(y), k.multiply(z));
 		}
-		public double magnitude() {
-			return Math.sqrt(x*x+y*y+z*z);  
+		public BigDecimal magnitude() {
+			return x.multiply(x).add(y.multiply(y)).add(z.multiply(z)).sqrt(mc);  
 		}
 		public Pos normalize() {
-			double mag = magnitude();
-			if (mag == 0) {
+			BigDecimal mag = magnitude();
+			if (mag.equals(BigDecimal.ZERO)) {
 				return this;
 			}
-			return multiply(1/mag);  
+			return multiply(BigDecimal.ONE.divide(mag, mc));  
 		}
 		// https://matheguru.com/lineare-algebra/kreuzprodukt-vektorprodukt.html?utm_content=cmp-true
 		public Pos cross(Pos other) {
-			return new Pos(y*other.z-z*other.y, z*other.x-x*other.z, x*other.y-y*other.x);
+			return new Pos(y.multiply(other.z).subtract(z.multiply(other.y)), z.multiply(other.x).subtract(x.multiply(other.z)), x.multiply(other.y).subtract(y.multiply(other.x)));
 		}
-		public double dot(Pos other) {
-			return x*other.x + y*other.y + z*other.z;
+		public BigDecimal dot(Pos other) {
+			return x.multiply(other.x).add(y.multiply(other.y)).add(z.multiply(other.z));
 		}
 		public Pos min(Pos pos) {
-			if ((x<=pos.x) && (y<=pos.y) && (z<=pos.z)) {
+			if (LE(x, pos.x) && LE(y,pos.y) && LE(z,pos.z)) {
 				return this;
 			}
-			return new Pos(Math.min(x, pos.x), Math.min(y, pos.y), Math.min(z, pos.z));
+			return new Pos(MIN(x, pos.x), MIN(y, pos.y), MIN(z, pos.z));
 		}
 		public Pos max(Pos pos) {
-			if ((x>=pos.x) && (y>=pos.y) && (z>=pos.z)) {
+			if (GE(x,pos.x) && GE(y,pos.y) && GE(z,pos.z)) {
 				return this;
 			}
-			return new Pos(Math.max(x, pos.x), Math.max(y, pos.y), Math.max(z, pos.z));
+			return new Pos(MAX(x, pos.x), MAX(y, pos.y), MAX(z, pos.z));
 		}
 	}
 
@@ -149,63 +177,63 @@ public class Y23Day24 {
 		//		}
 	
 		public Pos intersectXY(Y23Day24.Hail other) {
-			Pos vNorm = new Pos(v.x, v.y, 0);
-			double vFactor = vNorm.magnitude();
+			Pos vNorm = new Pos(v.x, v.y, BigDecimal.ZERO);
+			BigDecimal vFactor = vNorm.magnitude();
 			vNorm = vNorm.normalize();
-			Pos vOtherNorm = new Pos(other.v.x, other.v.y, 0).normalize();
+			Pos vOtherNorm = new Pos(other.v.x, other.v.y, BigDecimal.ZERO).normalize();
 			
-			double PQx = other.pos.x - pos.x;
-			double PQy = other.pos.y - pos.y;
-			double rx = vNorm.x;
-			double ry = vNorm.y;
-			double rxt = -ry;
-			double ryt = rx;
-			double qx = PQx * rx + PQy * ry;
-			double qy = PQx * rxt + PQy * ryt;
-			double s0 = vOtherNorm.x;
-			double s1 = vOtherNorm.y;
-			double sx = s0 * rx + s1 * ry;
-			double sy = s0 * rxt + s1 * ryt;
-			if (sy == 0) {
+			BigDecimal PQx = other.pos.x.subtract(pos.x);
+			BigDecimal PQy = other.pos.y.subtract(pos.y);
+			BigDecimal rx = vNorm.x;
+			BigDecimal ry = vNorm.y;
+			BigDecimal rxt = ry.negate();
+			BigDecimal ryt = rx;
+			BigDecimal qx = PQx.multiply(rx).add(PQy.multiply(ry));
+			BigDecimal qy = PQx.multiply(rxt).add(PQy.multiply(ryt));
+			BigDecimal s0 = vOtherNorm.x;
+			BigDecimal s1 = vOtherNorm.y;
+			BigDecimal sx = s0.multiply(rx).add(s1.multiply(ry));
+			BigDecimal sy = s0.multiply(rxt).add(s1.multiply(ryt));
+			if (sy.equals(BigDecimal.ZERO)) {
 				// lines are parallel
 				return null;
 			}
-			double a = qx - qy * sx / sy;
-			if (a<0) {
+			BigDecimal a = qx.subtract(qy.multiply(sx.divide(sy, mc)));
+			if (LT(a,BigDecimal.ZERO)) {
 				return null;
 			}
-			double resultX = pos.x + a*v.x/vFactor;
-			double resultY = pos.y + a*v.y/vFactor;
-			double resultZ = pos.z + a*v.z/vFactor;
+			BigDecimal resultX = pos.x.add(a.multiply(v.x.divide(vFactor, mc)));
+			BigDecimal resultY = pos.y.add(a.multiply(v.y.divide(vFactor, mc)));
+			BigDecimal resultZ = pos.z.add(a.multiply(v.z.divide(vFactor, mc)));
 			return new Pos(resultX, resultY, resultZ);
 		}
 		public Pos intersectXYZ(Y23Day24.Hail other) {
 			// TODO: add delta-z check, switch x/z or y/z if x/y is parallel 
-			Pos vNorm = new Pos(v.x, v.y, 0);
-			double vFactor = vNorm.magnitude();
+			Pos vNorm = new Pos(v.x, v.y, BigDecimal.ZERO);
+			BigDecimal vFactor = vNorm.magnitude();
 			vNorm = vNorm.normalize();
-			Pos vOtherNorm = new Pos(other.v.x, other.v.y, 0).normalize();
+			Pos vOtherNorm = new Pos(other.v.x, other.v.y, BigDecimal.ZERO).normalize();
 			
-			double PQx = other.pos.x - pos.x;
-			double PQy = other.pos.y - pos.y;
-			double rx = vNorm.x;
-			double ry = vNorm.y;
-			double rxt = -ry;
-			double ryt = rx;
-			double qx = PQx * rx + PQy * ry;
-			double qy = PQx * rxt + PQy * ryt;
-			double s0 = vOtherNorm.x;
-			double s1 = vOtherNorm.y;
-			double sx = s0 * rx + s1 * ry;
-			double sy = s0 * rxt + s1 * ryt;
-			if (sy == 0) {
+			BigDecimal PQx = other.pos.x.subtract(pos.x);
+			BigDecimal PQy = other.pos.y.subtract(pos.y);
+			BigDecimal rx = vNorm.x;
+			BigDecimal ry = vNorm.y;
+			BigDecimal rxt = ry.negate();
+			BigDecimal ryt = rx;
+			BigDecimal qx = PQx.multiply(rx).add(PQy.multiply(ry));
+			BigDecimal qy = PQx.multiply(rxt).add(PQy.multiply(ryt));
+			BigDecimal s0 = vOtherNorm.x;
+			BigDecimal s1 = vOtherNorm.y;
+			BigDecimal sx = s0.multiply(rx).add(s1.multiply(ry));
+			BigDecimal sy = s0.multiply(rxt).add(s1.multiply(ryt));
+			if (sy.equals(BigDecimal.ZERO)) {
 				// lines are parallel
 				return null;
 			}
-			double a = qx - qy * sx / sy;
-			double resultX = pos.x + a*v.x/vFactor;
-			double resultY = pos.y + a*v.y/vFactor;
-			double resultZ = pos.z + a*v.z/vFactor;
+			BigDecimal a = qx.subtract(qy.multiply(sx.divide(sy, mc)));
+			BigDecimal resultX = pos.x.add(a.multiply(v.x.divide(vFactor, mc)));
+			BigDecimal resultY = pos.y.add(a.multiply(v.y.divide(vFactor, mc)));
+			BigDecimal resultZ = pos.z.add(a.multiply(v.z.divide(vFactor, mc)));
 			return new Pos(resultX, resultY, resultZ);
 		}
 		// https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
@@ -227,8 +255,8 @@ public class Y23Day24 {
 			Pos e2 = other.v.normalize();
 			Pos n = e1.cross(e2);
 			n = n.normalize();
-			double dist = n.dot(other.pos.subtract(pos));
-			Pos movedOtherPos = other.pos.add(n.multiply(-dist));
+			BigDecimal dist = n.dot(other.pos.subtract(pos));
+			Pos movedOtherPos = other.pos.add(n.multiply(dist.negate()));
 			Hail movedOther = new Hail(movedOtherPos, other.v); 
 			Pos result = movedOther.intersectXYZ(this);
 			return result;
@@ -238,19 +266,19 @@ public class Y23Day24 {
 			return new Hail(id, pos.add(v), v);
 		}
 
-		public Hail move(double factor) {
+		public Hail move(BigDecimal factor) {
 			return new Hail(id, pos.add(v.multiply(factor)), v);
 		}
 		// https://www.mathematik-oberstufe.de/vektoren/a/abstand-punkt-gerade-formel.html
-		public double distance(Pos otherPos) {
-			return otherPos.subtract(pos).cross(v).magnitude()/v.magnitude();
+		public BigDecimal distance(Pos otherPos) {
+			return otherPos.subtract(pos).cross(v).magnitude().divide(v.magnitude(), mc);
 		}
 
 	}
 	
-	static double FSIZE = 5000000000000.0;
+	static long FSIZE = 5000000000000L;
 
-	static record Timeslot(double from, double to) {}
+	static record Timeslot(BigDecimal from, BigDecimal to) {}
 	
 	public static class World {
 		List<Hail> hails;
@@ -265,7 +293,7 @@ public class Y23Day24 {
 		@Override public String toString() {
 			return hails.toString();
 		}
-		public long countIntersectionsXY(double minTargetArea, double maxTargetArea) {
+		public long countIntersectionsXY(BigDecimal minTargetArea, BigDecimal maxTargetArea) {
 			long result = 0; 
 			for (int i=0; i<hails.size(); i++) {
 				Hail hail1 = hails.get(i);
@@ -274,8 +302,8 @@ public class Y23Day24 {
 					Pos pos1 = hail1.intersectXY(hail2);
 					Pos pos2 = hail2.intersectXY(hail1);
 					if ((pos1 != null) && (pos2 != null)
-							&& (pos1.x>=minTargetArea) && (pos1.x<=maxTargetArea) 
-							&& (pos1.y>=minTargetArea) && (pos1.y<=maxTargetArea)) {
+							&& GE(pos1.x,minTargetArea) && LE(pos1.x,maxTargetArea) 
+							&& GE(pos1.y,minTargetArea) && LE(pos1.y,maxTargetArea)) {
 //						System.out.println(hail1+" and "+hail2+" intersect at "+pos1);
 						result++;
 					}
@@ -283,7 +311,7 @@ public class Y23Day24 {
 			}
 			return result;
 		}
-		public void tick(double factor) {
+		public void tick(BigDecimal factor) {
 			ticks++;
 			List<Hail> nextHails = new ArrayList<>();
 			for (Hail hail:hails) {
@@ -300,9 +328,9 @@ public class Y23Day24 {
 			}
 			return result;
 		}
-		Pos stoneStartPos =  new Pos(30.42,52.92,39.41).multiply(FSIZE);                                    // id 77 tick 4
-		Pos stoneEndPos =  new Pos(90.6654552739864,56.5242249593568,75.71798919844001).multiply(FSIZE);    // id 92 tick 101
-		double bestMaxDist;
+		Pos stoneStartPos =  new Pos(30.42,52.92,39.41).multiply(BigDecimal.valueOf(FSIZE));                                    // id 77 tick 4
+		Pos stoneEndPos =  new Pos(90.6654552739864,56.5242249593568,75.71798919844001).multiply(BigDecimal.valueOf(FSIZE));    // id 92 tick 101
+		BigDecimal bestMaxDist;
 		Pos bestStartPos;
 		Pos bestEndPos;
 		public void fillClosestPositions() {
@@ -310,37 +338,37 @@ public class Y23Day24 {
 			closestPositions = findClosestPositions(stoneThrow);
 			bestMaxDist = calcMaxDist(stoneThrow);
 			System.out.println("MAX DIST: "+bestMaxDist);
-			double delta = bestMaxDist / 10;
+			BigDecimal delta = bestMaxDist.multiply(BigDecimal.valueOf(0.1));
 			bestStartPos = stoneStartPos;
 			bestEndPos = stoneEndPos;
-			checkAlternative(-delta, 0, 0); 
-			checkAlternative(delta, 0, 0); 
-			checkAlternative(0, -delta, 0); 
-			checkAlternative(0, delta, 0); 
-			checkAlternative(0, 0, -delta); 
-			checkAlternative(0, 0, delta);
+			checkAlternative(delta.negate(), BigDecimal.ZERO, BigDecimal.ZERO); 
+			checkAlternative(delta, BigDecimal.ZERO, BigDecimal.ZERO); 
+			checkAlternative(BigDecimal.ZERO, delta.negate(), BigDecimal.ZERO); 
+			checkAlternative(BigDecimal.ZERO, delta, BigDecimal.ZERO); 
+			checkAlternative(BigDecimal.ZERO, BigDecimal.ZERO, delta.negate()); 
+			checkAlternative(BigDecimal.ZERO, BigDecimal.ZERO, delta);
 			System.out.println("BEST MAX DIST "+bestMaxDist+"  "+bestStartPos+" -> "+bestEndPos);
 			stoneStartPos = bestStartPos;
 			stoneEndPos = bestEndPos;
 		}
-		private void checkAlternative(double dx, double dy, double dz) {
+		private void checkAlternative(BigDecimal dx, BigDecimal dy, BigDecimal dz) {
 			checkAlternative(stoneStartPos.add(dx, dy, dz), stoneEndPos);
 			checkAlternative(stoneStartPos, stoneEndPos.add(dx, dy, dz));
 		}
 		private void checkAlternative(Pos startPos, Pos endPos) {
 			Hail alternativeStoneThrow = new Hail(startPos, endPos.subtract(startPos).normalize());
-			double maxDist = calcMaxDist(alternativeStoneThrow);
-			if (maxDist<bestMaxDist) {
+			BigDecimal maxDist = calcMaxDist(alternativeStoneThrow);
+			if (LT(maxDist,bestMaxDist)) {
 				bestMaxDist = maxDist;
 				bestStartPos = startPos;
 				bestEndPos = endPos;
 			}
 		}
-		private double calcMaxDist(Hail stoneThrow) {
-			double result = 0;
+		private BigDecimal calcMaxDist(Hail stoneThrow) {
+			BigDecimal result = BigDecimal.ZERO;
 			for (Pos pos:closestPositions) {
-				double dist = stoneThrow.distance(pos);
-				result = Math.max(result, dist);
+				BigDecimal dist = stoneThrow.distance(pos);
+				result = MAX(result, dist);
 			}
 			return result;
 		}
@@ -352,7 +380,7 @@ public class Y23Day24 {
 				Pos pos = closestPositions.get(i);
 				int col = 3;
 				DDDObject block = new DDDObject("C"+i,
-						pos.x, pos.y, pos.z, FSIZE/4, 0+col);
+						pos.x.doubleValue(), pos.y.doubleValue(), pos.z.doubleValue(), FSIZE/4, 0+col);
 				blocks.add(block);
 			}
 			for (Hail hail:hails) {
@@ -365,7 +393,7 @@ public class Y23Day24 {
 //					System.out.println("ID:92, TICK:"+ticks+": "+hail.pos+"  FSIZE*"+hail.pos.multiply(1.0/FSIZE));
 //				}
 				DDDObject block = new DDDObject("H"+hail.id,
-						hail.pos.x, hail.pos.y, hail.pos.z, FSIZE, 0+col);
+						hail.pos.x.doubleValue(), hail.pos.y.doubleValue(), hail.pos.z.doubleValue(), FSIZE, 0+col);
 				blocks.add(block);
 			}
 			DDDLineObject line = new DDDLineObject("XAX", 0,0,0, 100*FSIZE,0,0, FSIZE/10, 31);
@@ -380,19 +408,19 @@ public class Y23Day24 {
 			Pos startLinePos = stoneStartPos;
 			Pos endLinePos = stoneEndPos;
 			
-			line = new DDDLineObject("STONE", startLinePos.x, startLinePos.y,startLinePos.z, endLinePos.x, endLinePos.y,endLinePos.z, FSIZE/5, 31);
+			line = new DDDLineObject("STONE", startLinePos.x.doubleValue(), startLinePos.y.doubleValue(),startLinePos.z.doubleValue(), endLinePos.x.doubleValue(), endLinePos.y.doubleValue(),endLinePos.z.doubleValue(), FSIZE/5, 31);
 			blocks.add(line);
 
 			
 			
 			Pos testpos1 = new Pos(30.42*FSIZE, 52.92*FSIZE, 39.41*FSIZE);
 //			System.out.println(testpos1+"  FSIZE*"+testpos1.multiply(1.0/FSIZE));
-			DDDObject block = new DDDObject("TEST1", testpos1.x,testpos1.y,testpos1.z, FSIZE, 2);
+			DDDObject block = new DDDObject("TEST1", testpos1.x.doubleValue(),testpos1.y.doubleValue(),testpos1.z.doubleValue(), FSIZE, 2);
 			blocks.add(block);
 
-			Pos testpos2 = new Pos(testpos1.x+60*FSIZE, testpos1.y, testpos1.z+40*FSIZE);
+			Pos testpos2 = new Pos(testpos1.x.doubleValue()+60*FSIZE, testpos1.y.doubleValue(), testpos1.z.doubleValue()+40*FSIZE);
 //			System.out.println(testpos2+"  FSIZE*"+testpos2.multiply(1.0/FSIZE));
-			block = new DDDObject("TEST2", testpos2.x,testpos2.y,testpos2.z, FSIZE, 3);
+			block = new DDDObject("TEST2", testpos2.x.doubleValue(),testpos2.y.doubleValue(),testpos2.z.doubleValue(), FSIZE, 3);
 			blocks.add(block);
 
 //			Pos testpos3 = new Pos(-13*FSIZE, 55*FSIZE, 35*FSIZE);
@@ -411,20 +439,20 @@ public class Y23Day24 {
 			Hail rockThrow = new Hail(stoneStartPos, stoneEndPos.subtract(stoneStartPos).normalize());
 			Pos result = null;
 			Pos previousPos = null;
-			double previousHitTick = 0;
+			BigDecimal previousHitTick = BigDecimal.ZERO;
 			for (Hail hail:hails) {
 				Pos closestPos = hail.closestPos(rockThrow);
-				double hitTick = closestPos.subtract(hail.pos).magnitude()/hail.v.magnitude();
+				BigDecimal hitTick = closestPos.subtract(hail.pos).magnitude().divide(hail.v.magnitude(), mc);
 //				System.out.println("TICK: "+hitTick+" "+closestPos.multiply(1.0/FSIZE));
 				if (previousPos == null) {
 					previousPos = closestPos;
 					previousHitTick = hitTick;
 				}
 				else {
-					double deltaTick = hitTick-previousHitTick;
+					BigDecimal deltaTick = hitTick.subtract(previousHitTick);
 					Pos deltaPos = previousPos.subtract(closestPos);
-					Pos startPos = closestPos.add(deltaPos.multiply(hitTick/deltaTick));
-					System.out.println("ROCKSTART: SUM "+(long)(startPos.x+startPos.y+startPos.z)+" ("+(long)startPos.x+","+(long)startPos.y+","+(long)startPos.z+")");
+					Pos startPos = closestPos.add(deltaPos.multiply(hitTick.divide(deltaTick, mc)));
+					System.out.println("ROCKSTART: SUM "+startPos.x.add(startPos.y).add(startPos.z)+" ("+startPos.x+","+startPos.y+","+startPos.z+")");
 					result = startPos;
 					minStartPos = minStartPos.min(startPos);
 					maxStartPos = maxStartPos.max(startPos);
@@ -443,7 +471,7 @@ public class Y23Day24 {
 			world.addHail(new Hail(data.pos, data.v));
 		}
 //		System.out.println(world);
-		long cnt = world.countIntersectionsXY(minTargetArea, maxTargetArea);
+		long cnt = world.countIntersectionsXY(BigDecimal.valueOf(minTargetArea), BigDecimal.valueOf(maxTargetArea));
 		System.out.println("INTERSECTIONS X/Y: "+cnt);
 	}
 
@@ -458,7 +486,7 @@ public class Y23Day24 {
 		world.show3D("init");
 		world.fillClosestPositions();
 		world.show3D("closest");
-		while (world.bestMaxDist > 0.27) {
+		while (GT(world.bestMaxDist, BigDecimal.valueOf(0.1))) {
 			for (int i=0; i<=10; i++) {
 				world.fillClosestPositions();
 			}
@@ -466,14 +494,14 @@ public class Y23Day24 {
 		}
 		
 		for (int i=0; i<500; i++) {
-			world.tick(FSIZE/500);
+			world.tick(BigDecimal.valueOf(FSIZE/500));
 			world.show3D("tick");
 		}
 		
 		Pos rockStart = world.calcRockStartPosition();
 		System.out.println(rockStart);
-		System.out.println("ROCKSTART: ("+(long)rockStart.x+","+(long)rockStart.y+","+(long)rockStart.z+")");
-		System.out.println("SUM: "+(long)(rockStart.x+rockStart.y+rockStart.z));
+		System.out.println("ROCKSTART: ("+rockStart.x+","+rockStart.y+","+rockStart.z+")");
+		System.out.println("SUM: "+rockStart.x.add(rockStart.y).add(rockStart.z));
 		
 	}
 
