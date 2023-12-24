@@ -143,6 +143,9 @@ public class Y23Day24 {
 			}
 			return new Pos(MAX(x, pos.x), MAX(y, pos.y), MAX(z, pos.z));
 		}
+		public Pos divide(BigDecimal deltaTick) {
+			return multiply(BigDecimal.ONE.divide(deltaTick, mc));
+		}
 	}
 
 	static AtomicInteger hailID = new AtomicInteger();
@@ -328,8 +331,18 @@ public class Y23Day24 {
 			}
 			return result;
 		}
-		Pos stoneStartPos =  new Pos(30.42,52.92,39.41).multiply(BigDecimal.valueOf(FSIZE));                                    // id 77 tick 4
-		Pos stoneEndPos =  new Pos(90.6654552739864,56.5242249593568,75.71798919844001).multiply(BigDecimal.valueOf(FSIZE));    // id 92 tick 101
+//		Pos stoneStartPos =  new Pos(30.42,52.92,39.41).multiply(BigDecimal.valueOf(FSIZE));                                    // id 77 tick 4
+//		Pos stoneEndPos =  new Pos(90.6654552739864,56.5242249593568,75.71798919844001).multiply(BigDecimal.valueOf(FSIZE));    // id 92 tick 101
+		
+//		Pos stoneStartPos =  new Pos(152110428649347L,265036458756957L,192241731033158L);
+//		Pos stoneEndPos = new Pos(452582497259420L,283217889660114L,380754461976420L);
+
+		Pos stoneStartPos =  new Pos(152110428649347L,265036458756956L,192241731033157L);   // 0.0000002
+		Pos stoneEndPos = new Pos(452582497259420L,283217889660114L,380754461976419L);
+
+//		Pos stoneStartPos =  new Pos(1703619443970450L,358917577518425L,1165640699244168L);
+//		Pos stoneEndPos = new Pos(452582497259420L,283217889660114L,380754461976419L);
+		
 		BigDecimal bestMaxDist;
 		Pos bestStartPos;
 		Pos bestEndPos;
@@ -338,7 +351,7 @@ public class Y23Day24 {
 			closestPositions = findClosestPositions(stoneThrow);
 			bestMaxDist = calcMaxDist(stoneThrow);
 			System.out.println("MAX DIST: "+bestMaxDist);
-			BigDecimal delta = bestMaxDist.multiply(BigDecimal.valueOf(0.1));
+			BigDecimal delta = bestMaxDist.multiply(BigDecimal.valueOf(0.3));
 			bestStartPos = stoneStartPos;
 			bestEndPos = stoneEndPos;
 			checkAlternative(delta.negate(), BigDecimal.ZERO, BigDecimal.ZERO); 
@@ -388,10 +401,10 @@ public class Y23Day24 {
 				if (hail.id==ticks) {
 					col=3;
 				}
-//				if (hail.id==92) {
-//					col=1;
-//					System.out.println("ID:92, TICK:"+ticks+": "+hail.pos+"  FSIZE*"+hail.pos.multiply(1.0/FSIZE));
-//				}
+				if (hail.id==1) {
+					col=1;
+					System.out.println("ID:1, TICK:"+ticks+": "+hail.pos+"  FSIZE*"+hail.pos.multiply(BigDecimal.valueOf(1.0/FSIZE)));
+				}
 				DDDObject block = new DDDObject("H"+hail.id,
 						hail.pos.x.doubleValue(), hail.pos.y.doubleValue(), hail.pos.z.doubleValue(), FSIZE, 0+col);
 				blocks.add(block);
@@ -413,15 +426,15 @@ public class Y23Day24 {
 
 			
 			
-			Pos testpos1 = new Pos(30.42*FSIZE, 52.92*FSIZE, 39.41*FSIZE);
-//			System.out.println(testpos1+"  FSIZE*"+testpos1.multiply(1.0/FSIZE));
-			DDDObject block = new DDDObject("TEST1", testpos1.x.doubleValue(),testpos1.y.doubleValue(),testpos1.z.doubleValue(), FSIZE, 2);
-			blocks.add(block);
-
-			Pos testpos2 = new Pos(testpos1.x.doubleValue()+60*FSIZE, testpos1.y.doubleValue(), testpos1.z.doubleValue()+40*FSIZE);
-//			System.out.println(testpos2+"  FSIZE*"+testpos2.multiply(1.0/FSIZE));
-			block = new DDDObject("TEST2", testpos2.x.doubleValue(),testpos2.y.doubleValue(),testpos2.z.doubleValue(), FSIZE, 3);
-			blocks.add(block);
+//			Pos testpos1 = new Pos(30.42*FSIZE, 52.92*FSIZE, 39.41*FSIZE);
+////			System.out.println(testpos1+"  FSIZE*"+testpos1.multiply(1.0/FSIZE));
+//			DDDObject block = new DDDObject("TEST1", testpos1.x.doubleValue(),testpos1.y.doubleValue(),testpos1.z.doubleValue(), FSIZE, 2);
+//			blocks.add(block);
+//
+//			Pos testpos2 = new Pos(testpos1.x.doubleValue()+60*FSIZE, testpos1.y.doubleValue(), testpos1.z.doubleValue()+40*FSIZE);
+////			System.out.println(testpos2+"  FSIZE*"+testpos2.multiply(1.0/FSIZE));
+//			block = new DDDObject("TEST2", testpos2.x.doubleValue(),testpos2.y.doubleValue(),testpos2.z.doubleValue(), FSIZE, 3);
+//			blocks.add(block);
 
 //			Pos testpos3 = new Pos(-13*FSIZE, 55*FSIZE, 35*FSIZE);
 //			System.out.println(testpos3+"  FSIZE*"+testpos3.multiply(1.0/FSIZE));
@@ -453,13 +466,41 @@ public class Y23Day24 {
 					Pos deltaPos = previousPos.subtract(closestPos);
 					Pos startPos = closestPos.add(deltaPos.multiply(hitTick.divide(deltaTick, mc)));
 					System.out.println("ROCKSTART: SUM "+startPos.x.add(startPos.y).add(startPos.z)+" ("+startPos.x+","+startPos.y+","+startPos.z+")");
+					System.out.println("ROCKSTART: ("+startPos.x+","+startPos.y+","+startPos.z+")");
 					result = startPos;
+					Pos rockV = closestPos.subtract(startPos).divide(hitTick);
+					System.out.println("ROCKV: ("+rockV.x+","+rockV.y+","+rockV.z+")");
 					minStartPos = minStartPos.min(startPos);
 					maxStartPos = maxStartPos.max(startPos);
 				}
 			}
 			System.out.println("SEARCH: "+maxStartPos.subtract(minStartPos));
 			return result;
+		}
+		public void testSolution() {
+			Pos oldRockStartPos = new Pos(1703619443970450L,358917577518425L,1165640699244168L);
+			Pos rockV = new Pos(-314L,-19L,-197L);
+//			Pos rockV = new Pos(314L,19L,197L);
+			
+			Pos rockStartPos = oldRockStartPos;
+			rockStartPos = rockStartPos.add(rockV.multiply(BigDecimal.valueOf(4780877094720L+219122905280L)));
+//			rockStartPos = rockStartPos.add(rockV.multiply(BigDecimal.valueOf(219122905280L-4780877094720L)));
+			System.err.println("ROCKSTART: "+rockStartPos);
+			System.err.println("SUM: "+rockStartPos.x.add(rockStartPos.y).add(rockStartPos.z));
+			
+			
+			Hail rock = new Hail(rockStartPos, rockV);
+			System.out.println(rock);
+			for (Hail hail:hails) {
+				Pos pos = hail.closestPos(rock);
+				BigDecimal distR = pos.subtract(rockStartPos).magnitude();
+				BigDecimal vDistR = distR.divide(rockV.magnitude(), mc);
+				
+				BigDecimal distH = pos.subtract(hail.pos).magnitude();
+				BigDecimal vDistH = distH.divide(hail.v.magnitude(), mc);
+				System.out.println("ID: "+hail.id+" vDISTR: "+vDistR+" vDISTH: "+vDistH);
+				
+			}
 		}
 		
 	}
@@ -477,21 +518,24 @@ public class Y23Day24 {
 
 	
 	public static void mainPart2(String inputFile) {
-		output = new Y23GUIOutput3D18("Day 22 Part I", true);
+//		output = new Y23GUIOutput3D18("Day 22 Part I", true);
 		World world = new World();
 		for (InputData data:new InputProcessor(inputFile)) {
 //			System.out.println(data);
 			world.addHail(new Hail(data.pos, data.v));
 		}
+		world.testSolution();
+		if (true)
+			return;
 		world.show3D("init");
 		world.fillClosestPositions();
 		world.show3D("closest");
-		while (GT(world.bestMaxDist, BigDecimal.valueOf(0.1))) {
-			for (int i=0; i<=10; i++) {
-				world.fillClosestPositions();
-			}
-			world.show3D("closest");
-		}
+//		while (GT(world.bestMaxDist, BigDecimal.valueOf(0.0000002))) {    // 0.0000002
+//			for (int i=0; i<=10; i++) {
+//				world.fillClosestPositions();
+//			}
+//			world.show3D("closest");
+//		}
 		
 		for (int i=0; i<500; i++) {
 			world.tick(BigDecimal.valueOf(FSIZE/500));
@@ -517,7 +561,15 @@ public class Y23Day24 {
 		System.out.println("--- PART II ---");
 		
 //		url = Y23Day24.class.getResource("/resources/input/aoc23day24/input-example.txt");
-		url = Y23Day24.class.getResource("/resources/input/aoc23day24/input.txt");     // 3228177720733056 too high (1703619443970457,358917577518420,1165640699244178) 
+		url = Y23Day24.class.getResource("/resources/input/aoc23day24/input.txt");     // 3228177720733056 too high (1703619443970457,358917577518420,1165640699244178)
+		                                                                               // 3228177720733043 too high (1703619443970449.99999680434718937260951063437086419125581909068979953387125301512956023021018923762220937120831222001145825264749278205981354459918939118910774817195982453891910189568798923480107826360320659389228527078608857387263885586319391637276270828050612426453117566061555934374859593802045534494853751327202182707390239319631395528963900165964095448863641915087248581025000000000000000000000000000000000000000000000,358917577518425.000000259590180263264813519319292272470946093654708759682418541340017648617573381010472697017474040387465695988683843739976067826757847723095022318636191642670197875837938056749293134201340186269170178010979164624955447838101833271183218666934983841213416313932611103286708028114497745153865539788459286023393891047316430318820903708911197729142397015197875629081680000000000000000000000000000000000000000000,1165640699244168.00000199139193840853967713641460351827246762531060786669569340097231738056923567880040425380693889737323715832440527731799667971264828112747446816848753219791917446628274298135460351105568803474375237846581196588575717686039514361690448486600296753855171055160694958665320092269146676646961872016400409915894112870972691999994145894222396581152059369052143207438040000000000000000000000000000000000000000000)
+																					   // 3228177720732513 too high
+		/*
+		 * 3228177720733043
+		 * ROCKSTART: (1703619443970450,358917577518425,1165640699244168)
+		 * ROCKV:     (-314,-19,-197)
+		 */
+		
 		mainPart2(new File(url.toURI()).toString());
 
 //		mainPart2("exercises/day24/Feri/input-example.txt");
@@ -525,6 +577,10 @@ public class Y23Day24 {
 		System.out.println("---------------");    
 	}
 
+	private static void testSolution() {
+		
+		
+	}
 
 	private static void testClosestPos() {
 		Hail rock = new Hail(new Pos(24, 13, 10), new Pos(-3, 1, 2));
