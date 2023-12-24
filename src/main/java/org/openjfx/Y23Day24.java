@@ -103,7 +103,18 @@ public class Y23Day24 {
 		public double dot(Pos other) {
 			return x*other.x + y*other.y + z*other.z;
 		}
-
+		public Pos min(Pos pos) {
+			if ((x<=pos.x) && (y<=pos.y) && (z<=pos.z)) {
+				return this;
+			}
+			return new Pos(Math.min(x, pos.x), Math.min(y, pos.y), Math.min(z, pos.z));
+		}
+		public Pos max(Pos pos) {
+			if ((x>=pos.x) && (y>=pos.y) && (z>=pos.z)) {
+				return this;
+			}
+			return new Pos(Math.max(x, pos.x), Math.max(y, pos.y), Math.max(z, pos.z));
+		}
 	}
 
 	static AtomicInteger hailID = new AtomicInteger();
@@ -299,7 +310,7 @@ public class Y23Day24 {
 			closestPositions = findClosestPositions(stoneThrow);
 			bestMaxDist = calcMaxDist(stoneThrow);
 			System.out.println("MAX DIST: "+bestMaxDist);
-			double delta = bestMaxDist / 3;
+			double delta = bestMaxDist / 10;
 			bestStartPos = stoneStartPos;
 			bestEndPos = stoneEndPos;
 			checkAlternative(-delta, 0, 0); 
@@ -395,6 +406,8 @@ public class Y23Day24 {
 			output.addStep(info, blocks);
 		}
 		public Pos calcRockStartPosition() {
+			Pos minStartPos = new Pos(Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE);
+			Pos maxStartPos = new Pos(Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE);
 			Hail rockThrow = new Hail(stoneStartPos, stoneEndPos.subtract(stoneStartPos).normalize());
 			Pos result = null;
 			Pos previousPos = null;
@@ -412,9 +425,12 @@ public class Y23Day24 {
 					Pos deltaPos = previousPos.subtract(closestPos);
 					Pos startPos = closestPos.add(deltaPos.multiply(hitTick/deltaTick));
 					System.out.println("ROCKSTART: SUM "+(long)(startPos.x+startPos.y+startPos.z)+" ("+(long)startPos.x+","+(long)startPos.y+","+(long)startPos.z+")");
-					result = startPos; 
+					result = startPos;
+					minStartPos = minStartPos.min(startPos);
+					maxStartPos = maxStartPos.max(startPos);
 				}
 			}
+			System.out.println("SEARCH: "+maxStartPos.subtract(minStartPos));
 			return result;
 		}
 		
@@ -442,7 +458,7 @@ public class Y23Day24 {
 		world.show3D("init");
 		world.fillClosestPositions();
 		world.show3D("closest");
-		while (world.bestMaxDist > 0.5) {
+		while (world.bestMaxDist > 0.27) {
 			for (int i=0; i<=10; i++) {
 				world.fillClosestPositions();
 			}
