@@ -80,7 +80,7 @@ public class Y23Day25 {
 	static final long RAND_SEED = 4;
 	static final double NET_DIST = 8.0;
 	static final long NET_ITERATIONS = 200;
-	static final double NET_SIZE_FACTOR = 1.4;
+	static final double NET_SIZE_FACTOR = 0.25;
 
 	static Random random = new Random(RAND_SEED);
 	
@@ -136,6 +136,9 @@ public class Y23Day25 {
 		}
 		public void addConnection(Node3D otherNode) {
 			neighbours.add(otherNode);
+		}
+		public void removeChild(Node3D child) {
+			neighbours.remove(child);
 		}
 	}
 	
@@ -200,24 +203,86 @@ public class Y23Day25 {
 			node1.addConnection(node2);
 			node2.addConnection(node1);
 		}
-		public void show3D(String info) {
-			List<Y23GUIOutput3D18.DDDObject> points = new ArrayList<>();
+		public void move3DNodes() {
 			for (Node3D node:nodes3D.values()) {
-				String nodeName = node.name;
+				Pos3D sum = new Pos3D(0,0,0);
+//				System.out.println("NODE "+node);
+				int cntTargets = 0;
+				for (Node3D neighbour:node.neighbours) {
+//					System.out.println("  neighbout "+neighbour);
+					Pos3D vect = neighbour.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+//					System.out.println("  dist: "+dist);
+					double move = dist-NET_DIST;
+//					System.out.println("  move: "+move);
+					Pos3D mVect = vect.normalize().multiply(move*0.5);
+//					System.out.println("  mVect: "+mVect);
+					Pos3D target = node.pos.add(mVect);
+//					System.out.println("  target: "+target);
+					sum = sum.add(target);
+					cntTargets++;
+//					System.out.println("  SUM: "+sum);
+				}
+				for (Node3D otherNode:nodes3D.values()) {
+					if (otherNode == node) {
+						continue;
+					}
+					Pos3D vect = otherNode.pos.subtract(node.pos);
+					double dist = vect.magnitude();
+					if (dist<NET_DIST/2) {
+						double move = dist-NET_DIST/2;
+						Pos3D mVect = vect.normalize().multiply(0.5*move);
+						Pos3D target = node.pos.add(mVect);
+						sum = sum.add(target);
+						cntTargets++;
+					}
+				}
+				Pos3D targetPos = sum.multiply(1.0/cntTargets);
+//				System.out.println("  SUM/#: "+targetPos);
+//				Pos3D halfWay = targetPos.subtract(node.pos)
+				node.newPos = targetPos;
+			}
+//			System.out.println();
+			for (Node3D node:nodes3D.values()) {
+				node.pos = node.newPos;
+			}
+		}
+		public void show3D(String info) {
+			show3D(info, 0, -1, -1);
+		}
+		public void show3D(String info, int bitMask, int min, int max) {
+			List<Y23GUIOutput3D18.DDDObject> points = new ArrayList<>();
+			int cntLine = 0;
+			for (Node3D node:nodes3D.values()) {
 				int type = 3;
 				double size = 1.0;
-				if (nodeName.equals("hfx") || nodeName.equals("bvb") || nodeName.equals("nvd")) {
-					type = 1;
-				}
-				if (nodeName.equals("pzl") || nodeName.equals("cmg") || nodeName.equals("jqt")) {
-					type = 2;
-				}
 				double boxSize = size*NET_SIZE_FACTOR;
-				double lineSize = 0.1*NET_SIZE_FACTOR;
 				Y23GUIOutput3D18.DDDObject point = new Y23GUIOutput3D18.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
 				points.add(point);
 				for (Node3D neighbour:node.neighbours) {
-					Y23GUIOutput3D18.DDDObject line = new Y23GUIOutput3D18.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 33);
+					String lineName = node.name+"-"+neighbour.name;
+					cntLine++;
+					int lineType=3;
+					double lineSize = 0.5*NET_SIZE_FACTOR;
+					if ((cntLine >= min) && (cntLine <= max)) {
+						System.out.println(cntLine+": "+lineName+" (>="+min+", <="+max+")");
+						lineType=2;
+						lineSize=2*lineSize;
+					}
+					if ((cntLine & bitMask) != 0) {
+						System.out.println(cntLine+": "+lineName+" ("+(cntLine & bitMask)+")");
+						lineType=0;
+						lineSize=2*lineSize;
+					}
+//					if ((cntLine == 1533) || (cntLine == 3258) || (cntLine == 3029)) {
+//					if ((cntLine == 1533)) {
+//						System.out.println(cntLine+": "+lineName);
+//						lineType=1;
+//						lineSize=2*lineSize;
+//						Y23GUIOutput3D18.DDDObject line = new Y23GUIOutput3D18.DDDLineObject(lineName, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30+lineType);
+//						points.add(line);						
+//					}
+					Y23GUIOutput3D18.DDDObject line = new Y23GUIOutput3D18.DDDLineObject(lineName, node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 30+lineType);
 					points.add(line);
 				}
 			}
@@ -225,6 +290,30 @@ public class Y23Day25 {
 				output.adjustScale(points);
 			}
 			output.addStep(info, points);
+		}
+		public void remove(String nodeName1, String nodeName2) {
+			Node3D node1 = nodes3D.get(nodeName1);
+			Node3D node2 = nodes3D.get(nodeName2);
+			node1.removeChild(node2);
+			node2.removeChild(node1);
+		}
+		public int countCluster(String startNodeName) {
+			Set<String> clusterNodes = new LinkedHashSet<>();
+			Set<String> newNodes = new LinkedHashSet<>();
+			newNodes.add(startNodeName);
+			while (!newNodes.isEmpty()) {
+				String nodeName = newNodes.iterator().next(); 
+				Node3D node = nodes3D.get(nodeName);
+				newNodes.remove(nodeName);
+				clusterNodes.add(nodeName);
+				for (Node3D child:node.neighbours) {
+					if (clusterNodes.contains(child.name)) {
+						continue;
+					}
+					newNodes.add(child.name);
+				}
+			}
+			return clusterNodes.size();
 		}
 		
 	}
@@ -234,15 +323,76 @@ public class Y23Day25 {
 		output = new Y23GUIOutput3D18("Day 25 Part I", true);
 		World world = new World();
 		for (InputData data:new InputProcessor(inputFile)) {
-			System.out.println(data);
+//			System.out.println(data);
 			world.addNode(data.nodeName, data.childNodeNames);
 		}
-		System.out.println(world);
+//		System.out.println(world);
 		world.create3DTopology();
+		
+		world.remove("cmj","qhd");
+		world.remove("lnf","jll");
+		world.remove("vtv","kkp");
+		
+		int clusterSize1 = world.countCluster("cmj");
+		int clusterSize2 = world.countCluster("qhd");
+
+		System.out.println("ClusteSizes: "+clusterSize1+" x "+clusterSize2+" = "+clusterSize1*clusterSize2);
+
+		if (true) {
+			return;
+		}
+		
+		for (int n=0; n<NET_ITERATIONS; n++) {
+			world.move3DNodes();
+			if ((n%50)==0) {
+//				world.show3D("move "+n);
+			}
+		}
+		
+		show(world, 1701, 1701);
+		show(world, 820, 820);
+		show(world, 2525, 2525);
+		show(world, 4194, 4194);
+		show(world, 4873, 4873);
+		show(world, 6482, 6482);
+		
+//		for (int i=6400; i<=6499; i+=1) {
+//			show(world, i, i);
+//		}
+		
+//		for (int i=0; i<=8000; i+=100) {
+//			show(world, i, i+99);
+//		}
+		
+//		for (int i=0; i<=20; i++) {
+//			world.show3D("BIT "+i, 1<<i, -1, -1);
+//		}
+		
 		world.show3D("init");
+		
 	}
 
 	
+	/**
+	 *  820: cmj-qhd (>=820, <=820)
+	 * 2525: qhd-cmj (>=2525, <=2525)
+	 * 1701: lnf-jll (>=1701, <=1701)
+	 * 4873: jll-lnf (>=4873, <=4873)
+	 * 4194: vtv-kkp (>=4194, <=4194)
+	 * 6482: kkp-vtv (>=6482, <=6482)
+     *
+	 * @param world
+	 * @param from
+	 * @param to
+	 */
+	
+
+
+	private static void show(World world, int from, int to) {
+		world.show3D(from+".."+to, 0, from, to);
+	}
+
+
 
 
 	public static void mainPart2(String inputFile) {
@@ -253,7 +403,7 @@ public class Y23Day25 {
 		System.out.println("--- PART I ---");
 
 //		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input-example.txt");
-		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input.txt");     
+		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input.txt");    // 616225 too high (785x785)     
 		mainPart1(new File(url.toURI()).toString());
 		
 //		mainPart1("exercises/day25/Feri/input-example.txt");
