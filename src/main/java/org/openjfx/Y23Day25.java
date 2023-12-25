@@ -2,6 +2,7 @@ package org.openjfx;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -315,7 +316,32 @@ public class Y23Day25 {
 			}
 			return clusterNodes.size();
 		}
-		
+		public void remove(String lineName) {
+			String[] nodeNames = lineName.split("-");
+			remove(nodeNames[0], nodeNames[1]);
+		}
+		public String findLongestLine() {
+			double maxDist = 0;
+			String result = "?-?";
+			for (Node3D node:nodes3D.values()) {
+				for (Node3D child:node.neighbours) {
+					double dist = child.pos.subtract(node.pos).magnitude();
+					if (dist>maxDist) {
+						maxDist = dist;
+						result = node.name+"-"+child.name;
+					}
+				}
+			}
+			return result;
+		}
+		public void move3DNodes(long iterations, int show) {
+			for (int n=0; n<iterations; n++) {
+				move3DNodes();
+				if ((show>0) && (n%show)==show-1) {
+					show3D("iteration "+n);
+				}
+			}
+		}
 	}
 	
 	
@@ -328,10 +354,21 @@ public class Y23Day25 {
 		}
 //		System.out.println(world);
 		world.create3DTopology();
+
+		for (int l=0; l<3; l++) {
+			world.move3DNodes(NET_ITERATIONS, 0);
+			String lineName = world.findLongestLine();
+			System.out.println("LONGEST LINE: "+lineName);
+			world.show3D("move "+l+" longest line: "+lineName);
+			world.remove(lineName);
+			world.show3D("move "+l+" removed: "+lineName);
+		}
+		world.move3DNodes(NET_ITERATIONS, 0);
+		world.show3D("move clusters");
 		
-		world.remove("cmj","qhd");
-		world.remove("lnf","jll");
-		world.remove("vtv","kkp");
+//		world.remove("cmj","qhd");
+//		world.remove("lnf","jll");
+//		world.remove("vtv","kkp");
 		
 		int clusterSize1 = world.countCluster("cmj");
 		int clusterSize2 = world.countCluster("qhd");
@@ -348,7 +385,7 @@ public class Y23Day25 {
 //				world.show3D("move "+n);
 			}
 		}
-		
+
 		show(world, 1701, 1701);
 		show(world, 820, 820);
 		show(world, 2525, 2525);
