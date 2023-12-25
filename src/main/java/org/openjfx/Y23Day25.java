@@ -2,7 +2,6 @@ package org.openjfx;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DecimalFormat;
@@ -80,7 +79,7 @@ public class Y23Day25 {
 
 	static final long RAND_SEED = 4;
 	static final double NET_DIST = 8.0;
-	static final long NET_ITERATIONS = 200;
+	static final long NET_ITERATIONS = 50;
 	static final double NET_SIZE_FACTOR = 0.25;
 
 	static Random random = new Random(RAND_SEED);
@@ -248,14 +247,30 @@ public class Y23Day25 {
 				node.pos = node.newPos;
 			}
 		}
-		public void show3D(String info) {
-			show3D(info, 0, -1, -1);
+		public void show3D(String info, Set<String> cluster1, Set<String> cluster2) {
+			show3D(info, "", -1, -1, cluster1, cluster2);
 		}
-		public void show3D(String info, int bitMask, int min, int max) {
+		public void show3D(String info) {
+			show3D(info, "", -1, -1, null, null);
+		}
+		public void show3D(String info, String lineName) {
+			show3D(info, lineName, -1, -1, null, null);
+		}
+		public void show3D(String info, String markedLineName, int min, int max, Set<String> cluster1, Set<String> cluster2) {
 			List<Y23GUIOutput3D18.DDDObject> points = new ArrayList<>();
 			int cntLine = 0;
 			for (Node3D node:nodes3D.values()) {
-				int type = 3;
+				int defaultType = 3;
+				int defaultLineType = 3;
+				if ((cluster1 != null) && cluster1.contains(node.name)) {
+					defaultLineType = 0;
+					defaultType = 0;
+				}
+				if ((cluster2 != null) && cluster2.contains(node.name)) {
+					defaultLineType = 1;
+					defaultType = 1;
+				}
+				int type = defaultType;
 				double size = 1.0;
 				double boxSize = size*NET_SIZE_FACTOR;
 				Y23GUIOutput3D18.DDDObject point = new Y23GUIOutput3D18.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
@@ -263,15 +278,14 @@ public class Y23Day25 {
 				for (Node3D neighbour:node.neighbours) {
 					String lineName = node.name+"-"+neighbour.name;
 					cntLine++;
-					int lineType=3;
+					int lineType=defaultLineType;
 					double lineSize = 0.5*NET_SIZE_FACTOR;
 					if ((cntLine >= min) && (cntLine <= max)) {
 						System.out.println(cntLine+": "+lineName+" (>="+min+", <="+max+")");
 						lineType=2;
 						lineSize=2*lineSize;
 					}
-					if ((cntLine & bitMask) != 0) {
-						System.out.println(cntLine+": "+lineName+" ("+(cntLine & bitMask)+")");
+					if (lineName.equals(markedLineName)) {
 						lineType=0;
 						lineSize=2*lineSize;
 					}
@@ -298,7 +312,7 @@ public class Y23Day25 {
 			node1.removeChild(node2);
 			node2.removeChild(node1);
 		}
-		public int countCluster(String startNodeName) {
+		public Set<String> collectCluster(String startNodeName) {
 			Set<String> clusterNodes = new LinkedHashSet<>();
 			Set<String> newNodes = new LinkedHashSet<>();
 			newNodes.add(startNodeName);
@@ -314,7 +328,7 @@ public class Y23Day25 {
 					newNodes.add(child.name);
 				}
 			}
-			return clusterNodes.size();
+			return clusterNodes;
 		}
 		public void remove(String lineName) {
 			String[] nodeNames = lineName.split("-");
@@ -355,62 +369,44 @@ public class Y23Day25 {
 //		System.out.println(world);
 		world.create3DTopology();
 
+		String cluster1nodeName = null;
+		String cluster2nodeName = null;
 		for (int l=0; l<3; l++) {
-			world.move3DNodes(NET_ITERATIONS, 0);
+			if (l==0) {
+				world.move3DNodes(10, 1);
+				world.move3DNodes(20, 2);
+				world.move3DNodes(20, 5);
+			}
+			else {
+				world.move3DNodes(NET_ITERATIONS, 5);
+			}
 			String lineName = world.findLongestLine();
 			System.out.println("LONGEST LINE: "+lineName);
-			world.show3D("move "+l+" longest line: "+lineName);
+			world.show3D("move "+l+" longest line: "+lineName, lineName);
 			world.remove(lineName);
 			world.show3D("move "+l+" removed: "+lineName);
+			cluster1nodeName = lineName.substring(0,3);
+			cluster2nodeName = lineName.substring(4);
 		}
-		world.move3DNodes(NET_ITERATIONS, 0);
-		world.show3D("move clusters");
+		world.move3DNodes(NET_ITERATIONS, 5);
 		
 //		world.remove("cmj","qhd");
 //		world.remove("lnf","jll");
 //		world.remove("vtv","kkp");
 		
-		int clusterSize1 = world.countCluster("cmj");
-		int clusterSize2 = world.countCluster("qhd");
+		Set<String> cluster1 = world.collectCluster(cluster1nodeName);
+		Set<String> cluster2 = world.collectCluster(cluster2nodeName);
+		int clusterSize1 = cluster1.size();
+		int clusterSize2 = cluster2.size();
+
+		world.show3D("highlight clusters", cluster1, cluster2);
 
 		System.out.println("ClusteSizes: "+clusterSize1+" x "+clusterSize2+" = "+clusterSize1*clusterSize2);
 
-		if (true) {
-			return;
-		}
-		
-		for (int n=0; n<NET_ITERATIONS; n++) {
-			world.move3DNodes();
-			if ((n%50)==0) {
-//				world.show3D("move "+n);
-			}
-		}
-
-		show(world, 1701, 1701);
-		show(world, 820, 820);
-		show(world, 2525, 2525);
-		show(world, 4194, 4194);
-		show(world, 4873, 4873);
-		show(world, 6482, 6482);
-		
-//		for (int i=6400; i<=6499; i+=1) {
-//			show(world, i, i);
-//		}
-		
-//		for (int i=0; i<=8000; i+=100) {
-//			show(world, i, i+99);
-//		}
-		
-//		for (int i=0; i<=20; i++) {
-//			world.show3D("BIT "+i, 1<<i, -1, -1);
-//		}
-		
-		world.show3D("init");
-		
 	}
 
 	
-	/**
+	/*
 	 *  820: cmj-qhd (>=820, <=820)
 	 * 2525: qhd-cmj (>=2525, <=2525)
 	 * 1701: lnf-jll (>=1701, <=1701)
@@ -418,15 +414,12 @@ public class Y23Day25 {
 	 * 4194: vtv-kkp (>=4194, <=4194)
 	 * 6482: kkp-vtv (>=6482, <=6482)
      *
-	 * @param world
-	 * @param from
-	 * @param to
 	 */
 	
 
 
 	private static void show(World world, int from, int to) {
-		world.show3D(from+".."+to, 0, from, to);
+		world.show3D(from+".."+to, "", from, to, null, null);
 	}
 
 
@@ -440,7 +433,7 @@ public class Y23Day25 {
 		System.out.println("--- PART I ---");
 
 //		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input-example.txt");
-		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input.txt");    // 616225 too high (785x785)     
+		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input.txt");    
 		mainPart1(new File(url.toURI()).toString());
 		
 //		mainPart1("exercises/day25/Feri/input-example.txt");
