@@ -22,6 +22,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.geometry.Pos;
 import javafx.scene.Camera;
@@ -1109,6 +1110,10 @@ public class Y23GUIOutput3D18 extends Application {
         yRotate.angleProperty().bind(angleY);
 
         scene.setOnMousePressed(event -> {
+        	System.out.println(event);
+        	if (event.isSecondaryButtonDown()) {
+        		checkObject(event.getX(), event.getY(), event.getSceneX(), event.getSceneY(), event.getScreenX(), event.getScreenY());
+        	}
             anchorX = event.getSceneX();
             anchorY = event.getSceneY();
             anchorAngleX = angleX.get();
@@ -1127,7 +1132,29 @@ public class Y23GUIOutput3D18 extends Application {
     }
 
 
-    class SmartGroup extends Group {
+    private void checkObject(double x, double y, double sceneX, double sceneY, double screenX, double screenY) {
+    	System.out.println();
+    	System.out.println("x="+x+",y="+y+",sceneX="+sceneX+",sceneY="+sceneY+",screenX="+screenX+",screenY="+screenY);
+    	
+    	Point2D pRClick = new Point2D(screenX, screenY);
+
+    	boolean hit = false;
+    	for (NodeInfo nodeInfo:nodeInfos.values()) {
+    		Node node = nodeInfo.node;
+    		Bounds boundsInLocal = node.getBoundsInLocal();
+    		Bounds screenBounds = node.localToScreen(boundsInLocal);
+    		if (screenBounds.contains(pRClick)) {
+    			hit = true;
+    			System.out.println("HIT: "+nodeInfo.dddo.id);
+//    			nodeInfo.dddo.type = nodeInfo.dddo.type ^ 1;
+    		}
+    		if (hit) {
+//    			refreshCanvas();
+    		}
+    	}
+	}
+
+	class SmartGroup extends Group {
         Rotate r;
         Transform t = new Rotate();
 
@@ -1193,7 +1220,7 @@ public class Y23GUIOutput3D18 extends Application {
 		List<DDDObject> state = new ArrayList<>();
 
 		// F
-		state.add(new DDDObject(-1.0, -1.0, -1.0, 1.0, 0));
+		state.add(new DDDObject("FTL", -1.0, -1.0, -1.0, 1.0, 1));
 		state.add(new DDDObject( 0.0, -1.0, -1.0, 1.0, 0));
 		state.add(new DDDObject( 1.0, -1.0, -1.0, 1.0, 0));
 
