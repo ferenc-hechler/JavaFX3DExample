@@ -1,0 +1,268 @@
+package org.openjfx;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
+import java.util.Set;
+
+/**
+ * see: https://adventofcode.com/2023/day/25
+ */
+public class Y23Day25 {
+
+	static Y23GUIOutput3D18 output;
+
+	/*
+	 * Example:
+	 * 
+	 * jqt: rhn xhk nvd
+	 * rsh: frs pzl lsr
+	 * xhk: hfx
+	 * cmg: qnr nvd lhk bvb
+	 * rhn: xhk bvb hfx
+	 * bvb: xhk hfx
+	 * pzl: lsr hfx nvd
+	 * qnr: nvd
+	 * ntq: jqt hfx bvb xhk
+	 * nvd: lhk
+	 * lsr: lhk
+	 * rzs: qnr cmg lsr rsh
+	 * frs: qnr lhk lsr
+	 * 
+	 */
+
+	private static final String INPUT_RX = "^([a-z]+): ([a-z ]+)$";
+	
+	public static record InputData(String nodeName, List<String> childNodeNames) {}
+	
+	public static class InputProcessor implements Iterable<InputData>, Iterator<InputData> {
+		private Scanner scanner;
+		public InputProcessor(String inputFile) {
+			try {
+				scanner = new Scanner(new File(inputFile));
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		@Override public Iterator<InputData> iterator() { return this; }
+		@Override public boolean hasNext() { return scanner.hasNext(); }
+		@Override public InputData next() {
+			String line = scanner.nextLine().trim();
+			while (line.length() == 0) {
+				line = scanner.nextLine();
+			}
+			if (line.matches(INPUT_RX)) {
+				String nodeName = line.replaceFirst(INPUT_RX, "$1");
+				List<String> childNodeNames = Arrays.asList(line.replaceFirst(INPUT_RX, "$2").trim().split(" +"));
+				return new InputData(nodeName, childNodeNames);
+			}
+			else {
+				throw new RuntimeException("invalid line '"+line+"'");
+			}
+		}
+	}
+
+
+	static final long RAND_SEED = 4;
+	static final double NET_DIST = 8.0;
+	static final long NET_ITERATIONS = 200;
+	static final double NET_SIZE_FACTOR = 1.4;
+
+	static Random random = new Random(RAND_SEED);
+	
+	public static double rand(double from, double to) {
+		return random.nextDouble()*(to-from)+from;
+	}
+	
+    private static final DecimalFormat df = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ROOT));
+	public static String d(double d) {
+		return df.format(d);
+	}
+
+	static record Pos3D(double x, double y, double z) {
+		@Override public String toString() {
+			return "("+d(x)+","+d(y)+","+d(z)+")";
+		}
+		public Pos3D add(Pos3D other) {
+			return new Pos3D(x+other.x, y+other.y, z+other.z);  
+		}
+		public Pos3D subtract(Pos3D other) {
+			return new Pos3D(x-other.x, y-other.y, z-other.z);  
+		}
+		public Pos3D multiply(double factor) {
+			return new Pos3D(x*factor, y*factor, z*factor);  
+		}
+		public double magnitude() {
+			return Math.sqrt(x*x+y*y+z*z);  
+		}
+		public Pos3D normalize() {
+			double mag = magnitude();
+			if (mag == 0) {
+				return this;
+			}
+			return multiply(1/mag);  
+		}
+	}
+	static Pos3D randomPos3D() {
+		return new Pos3D(rand(-1000,1000), rand(-1000,1000), rand(-1000,1000));
+	}
+
+	static class Node3D {
+		String name;
+		Pos3D pos;
+		Pos3D newPos;
+		Set<Node3D> neighbours;
+		public Node3D(String name, Pos3D pos) {
+			this.name = name;
+			this.pos = pos;
+			neighbours = new LinkedHashSet<>();
+		}
+		@Override public String toString() {
+			return name+"["+pos+"#"+neighbours.size()+"]";
+		}
+		public void addConnection(Node3D otherNode) {
+			neighbours.add(otherNode);
+		}
+	}
+	
+	static class Node {
+		String name;
+		List<Node> children; 
+		public Node(String name) {
+			this.name= name;
+			this.children = new ArrayList<>();
+		}
+		public void addNode(Node node) {
+			children.add(node);
+		}
+		@Override public String toString() {
+			StringBuilder result = new StringBuilder();
+			result.append(name);
+			String seperator = "[";
+			for (Node child:children) {
+				result.append(seperator).append(child.name);
+				seperator = ",";
+			}
+			result.append("]");
+			return result.toString();
+		}
+	}
+
+	public static class World {
+		Map<String, Node> nodes;
+		Map<String, Node3D> nodes3D;
+		public World() {
+			this.nodes = new LinkedHashMap<>();
+			this.nodes3D = new LinkedHashMap<>();
+		}
+		public void addNode(String nodeName, List<String> childNodeNames) {
+			Node node = getOrCreateNode(nodeName);
+			for (String childNodeName:childNodeNames) {
+				node.addNode(getOrCreateNode(childNodeName));
+			}
+		}
+		private Node getOrCreateNode(String nodeName) {
+			return nodes.computeIfAbsent(nodeName, (k)->new Node(nodeName));
+		}
+		@Override
+		public String toString() {
+			return nodes.toString();
+		}
+		public void create3DTopology() {
+			nodes3D = new HashMap<>();
+			for (Node node:nodes.values()) {
+				Node3D node3D = new Node3D(node.name, randomPos3D());
+				nodes3D.put(node3D.name, node3D);
+			}
+			for (Node node:nodes.values()) {
+				for (Node child:node.children) {
+					addNode3DConnection(node.name, child.name);
+				}
+			}
+		}
+		private void addNode3DConnection(String nodeName1, String nodeName2) {
+			Node3D node1 = nodes3D.get(nodeName1);
+			Node3D node2 = nodes3D.get(nodeName2);
+			node1.addConnection(node2);
+			node2.addConnection(node1);
+		}
+		public void show3D(String info) {
+			List<Y23GUIOutput3D18.DDDObject> points = new ArrayList<>();
+			for (Node3D node:nodes3D.values()) {
+				String nodeName = node.name;
+				int type = 3;
+				double size = 1.0;
+				if (nodeName.equals("hfx") || nodeName.equals("bvb") || nodeName.equals("nvd")) {
+					type = 1;
+				}
+				if (nodeName.equals("pzl") || nodeName.equals("cmg") || nodeName.equals("jqt")) {
+					type = 2;
+				}
+				double boxSize = size*NET_SIZE_FACTOR;
+				double lineSize = 0.1*NET_SIZE_FACTOR;
+				Y23GUIOutput3D18.DDDObject point = new Y23GUIOutput3D18.DDDObject(node.name, node.pos.x, node.pos.y, node.pos.z, boxSize, type);
+				points.add(point);
+				for (Node3D neighbour:node.neighbours) {
+					Y23GUIOutput3D18.DDDObject line = new Y23GUIOutput3D18.DDDLineObject(node.pos.x, node.pos.y, node.pos.z, neighbour.pos.x, neighbour.pos.y, neighbour.pos.z, lineSize, 33);
+					points.add(line);
+				}
+			}
+			if (output.scale == 1) {
+				output.adjustScale(points);
+			}
+			output.addStep(info, points);
+		}
+		
+	}
+	
+	
+	public static void mainPart1(String inputFile) {
+		output = new Y23GUIOutput3D18("Day 25 Part I", true);
+		World world = new World();
+		for (InputData data:new InputProcessor(inputFile)) {
+			System.out.println(data);
+			world.addNode(data.nodeName, data.childNodeNames);
+		}
+		System.out.println(world);
+		world.create3DTopology();
+		world.show3D("init");
+	}
+
+	
+
+
+	public static void mainPart2(String inputFile) {
+	}
+
+
+	public static void main(String[] args) throws FileNotFoundException, URISyntaxException {
+		System.out.println("--- PART I ---");
+
+//		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input-example.txt");
+		URL url = Y23Day24.class.getResource("/resources/input/aoc23day25/input.txt");     
+		mainPart1(new File(url.toURI()).toString());
+		
+//		mainPart1("exercises/day25/Feri/input-example.txt");
+//		mainPart1("exercises/day25/Feri/input.txt");               
+		System.out.println("---------------");                           
+		System.out.println("--- PART II ---");
+//		mainPart2("exercises/day25/Feri/input-example.txt");
+//		mainPart2("exercises/day25/Feri/input.txt");
+		System.out.println("---------------");    
+	}
+	
+}
