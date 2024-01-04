@@ -389,24 +389,30 @@ public class Y23Day24 {
 		public void show3D(String info) {
 //			System.out.println("TICKS: "+ticks);
 			List<DDDObject> blocks = new ArrayList<>();
+			Hail rock = hails.get(0);
+			double baseSize = FSIZE/2;
 			for (int i=0; i<closestPositions.size(); i++) {
 				Pos pos = closestPositions.get(i);
-				int col = 3;
-				DDDObject block = new DDDObject("C"+i,
-						pos.x.doubleValue(), pos.y.doubleValue(), pos.z.doubleValue(), FSIZE/4, 0+col);
-				blocks.add(block);
+				if (LE(pos.x,rock.pos.x)) {
+					int col = 3;
+					DDDObject block = new DDDObject("C"+i,
+							pos.x.doubleValue(), pos.y.doubleValue(), pos.z.doubleValue(), baseSize/2, 0+col);
+					blocks.add(block);
+				}
 			}
 			for (Hail hail:hails) {
 				int col = 0;
-				if (hail.id==ticks) {
-					col=3;
-				}
+				double hSize = baseSize;
+//				if (hail.id==ticks) {
+//					col=3;
+//				}
 				if (hail.id==1) {
 					col=1;
-					System.out.println("ID:1, TICK:"+ticks+": "+hail.pos+"  FSIZE*"+hail.pos.multiply(BigDecimal.valueOf(1.0/FSIZE)));
+					hSize = hSize * 1.5;
+//					System.out.println("ID:1, TICK:"+ticks+": "+hail.pos+"  FSIZE*"+hail.pos.multiply(BigDecimal.valueOf(1.0/FSIZE)));
 				}
 				DDDObject block = new DDDObject("H"+hail.id,
-						hail.pos.x.doubleValue(), hail.pos.y.doubleValue(), hail.pos.z.doubleValue(), FSIZE, 0+col);
+						hail.pos.x.doubleValue(), hail.pos.y.doubleValue(), hail.pos.z.doubleValue(), hSize, 0+col);
 				blocks.add(block);
 			}
 			DDDLineObject line = new DDDLineObject("XAX", 0,0,0, 100*FSIZE,0,0, FSIZE/10, 31);
@@ -421,8 +427,8 @@ public class Y23Day24 {
 			Pos startLinePos = stoneStartPos;
 			Pos endLinePos = stoneEndPos;
 			
-			line = new DDDLineObject("STONE", startLinePos.x.doubleValue(), startLinePos.y.doubleValue(),startLinePos.z.doubleValue(), endLinePos.x.doubleValue(), endLinePos.y.doubleValue(),endLinePos.z.doubleValue(), FSIZE/5, 31);
-			blocks.add(line);
+//			line = new DDDLineObject("STONE", startLinePos.x.doubleValue(), startLinePos.y.doubleValue(),startLinePos.z.doubleValue(), endLinePos.x.doubleValue(), endLinePos.y.doubleValue(),endLinePos.z.doubleValue(), FSIZE/5, 31);
+//			blocks.add(line);
 
 			
 			
@@ -537,8 +543,8 @@ public class Y23Day24 {
 //			world.show3D("closest");
 //		}
 		
-		for (int i=0; i<500; i++) {
-			world.tick(BigDecimal.valueOf(FSIZE/500));
+		for (int i=0; i<1500; i++) {
+			world.tick(BigDecimal.valueOf(FSIZE/5000));
 			world.show3D("tick");
 		}
 		
